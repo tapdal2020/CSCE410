@@ -80,3 +80,11 @@ copykernel.sh (**)	Simple script to copy the kernel onto
   			In rare cases the paths in the file may need to be 
 			edited to make them reflect the student's environment.
 
+
+TODO:
+	*Make a design document called design.pdf which describes how frame pool is implemented
+	*implement release_frames and needed_info_frames
+	*modify and submit makefile and other files if needed noting the modifications in the design document
+	*turn in all files zipped in p2.zip
+
+
