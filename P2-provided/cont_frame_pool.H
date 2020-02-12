@@ -85,9 +85,14 @@ public:
      If successful, returns the frame number of the first frame.
      If fails, returns 0.
      */
-    
+
+    bool check_sequence(unsigned long first_frame, unsigned int n_frames);
+    //checks to see if there are enough consecutive free frames for that space to be allocated
+
+    void allocate_frames(unsigned long first_frame, unsigned int n_frames);
+    //updates the bitmap to reflect the newly allocated frames
     void mark_inaccessible(unsigned long _base_frame_no,
-                           unsigned long _n_frames);
+                           unsigned long _n_frames, unsigned long frame_no);
     /*
      Marks a contiguous area of physical memory, i.e., a contiguous
      sequence of frames, as inaccessible.

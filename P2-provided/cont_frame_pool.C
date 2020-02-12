@@ -133,11 +133,11 @@ ContFramePool::ContFramePool(unsigned long _base_frame_no,
                              unsigned long _n_info_frames)
 {
     //bitmap needs to fit inside of the frame
-    assert(_nframes <= FRAME_SIZE * 8);
+    assert(_n_frames <= FRAME_SIZE * 8);
 
     base_frame_no = _base_frame_no;
-    nframes = _nframes;
-    nFreeFrames = _nframes;
+    n_frames = _n_frames;
+    nFreeFrames = _n_frames;
     info_frame_no = _info_frame_no;
     
     // If _info_frame_no is zero then we keep management info in the first
@@ -149,11 +149,10 @@ ContFramePool::ContFramePool(unsigned long _base_frame_no,
     }
     
     // Number of frames must be "fill" the bitmap!
-    assert ((nframes % 8 ) == 0);
-    
+    assert ((n_frames % 8 ) == 0);
     
     // Everything ok. Proceed to mark all bits in the bitmap
-    for(int i=0; i*8 < _nframes; i++) {
+    for(int i=0; i*8 < n_frames; i++) {
         bitmap[i] = 0xFF;
     }
     
@@ -183,28 +182,61 @@ unsigned long ContFramePool::get_frames(unsigned int _n_frames)
     
     frame_no += i * 8;
     
-    unsigned char mask = 0x80;
-    while ((mask & bitmap[i]) == 0) {
-        mask = mask >> 1;
-        frame_no++;
+    unsigned char mask = 0b11000000; //sequence that checks is the space is free
+    bool isSpace = false;
+
+    while(!isSpace){
+        while((mask & bitmap[i]) == 0){
+            mask = mask >> 2;
+            frame_no++;
+
+            if(mask == 0b00000011){
+                i++;
+                mask = 0b11000000;
+            }
+        }
+
+        isSpace = check_sequence(frame_no, _n_frames);
     }
-    nFreeFrames--;
-    
-    // Update bitmap
-    bitmap[i] = bitmap[i] ^ mask;
     
     return (frame_no);
 
 }
 
+bool ContFramePool::check_sequence(unsigned long first_frame, unsigned int n_frames){
+
+    for(unsigned long i = first_frame; i < first_frame + n_frames; i++){
+        unsigned char mask = 0b10000000 >> ((i*2)%8);
+        unsigned int bitmap_index = (i*2)/8;
+        if((bitmap[bitmap_index] & mask)==0){
+            return false;
+            break;
+        }
+    }
+    allocate_frames(first_frame, n_frames);
+    nFreeFrames -= n_frames;
+    return true;
+}
+
+void ContFramePool::allocate_frames(unsigned long first_frame, unsigned int n_frames){
+    for(unsigned long i = first_frame; i < first_frame + n_frames; i++){
+        unsigned char mask = 0b10000000 >> ((i*2)%8);
+        unsigned int bitmap_index = (i*2)/8;
+        if(i == first_frame){
+            mask = mask | (mask >> 1); //0b10000000 | 0b01000000 = 0b11000000
+        }
+        bitmap[bitmap_index] = bitmap[bitmap_index] ^ mask;
+    }
+}
+
 void ContFramePool::mark_inaccessible(unsigned long _base_frame_no,
-                                      unsigned long _n_frames)
+                                      unsigned long _n_frames, unsigned long frame_no)
 {
      // Let's first do a range check.
-    assert ((_frame_no >= base_frame_no) && (_frame_no < base_frame_no + nframes));
+    assert ((frame_no >= base_frame_no) && (frame_no < base_frame_no + _n_frames));
     
-    unsigned int bitmap_index = (_frame_no - base_frame_no) / 8;
-    unsigned char mask = 0x80 >> ((_frame_no - base_frame_no) % 8);
+    unsigned int bitmap_index = (frame_no - base_frame_no) / 8;
+    unsigned char mask = 0x80 >> ((frame_no - base_frame_no) % 8);
     
     // Is the frame being used already?
     assert((bitmap[bitmap_index] & mask) != 0);
@@ -216,7 +248,19 @@ void ContFramePool::mark_inaccessible(unsigned long _base_frame_no,
 
 void ContFramePool::release_frames(unsigned long _first_frame_no)
 {
-    // TODO: IMPLEMENTATION NEEEDED!
+    /* // Check if the value is within the range
+    assert (_first_frame_no > 0 && _first_frame_no < n_frames);
+    
+    unsigned int bitmap_index = (frame_no - base_frame_no) / 8;
+    unsigned char mask = 0x80 >> ((frame_no - base_frame_no) % 8);
+    
+    // Is the frame already released?
+    assert((bitmap[bitmap_index] & mask) == 0);
+    
+    // Update bitmap
+    bitmap[bitmap_index] ^= mask;
+    nFreeFrames++;*/
+
     assert(false);
 }
 
