@@ -177,16 +177,13 @@ unsigned long ContFramePool::get_frames(unsigned int _n_frames){
     
     unsigned char mask = 0b11000000; //sequence that checks is the space is free
     bool isSpace = false;
-    unsigned int i;
-    unsigned int count = 0;
     while(!isSpace){
-        while(bitmap[i] & mask == 0){
-		mask >> 2;
-		frame_no++;
-		count++;
-		i = (count / 4);
-	}
-        isSpace = check_sequence(frame_no, _n_frames);
+        unsigned int bitmap_index = (frame_no - base_frame_no)/4 -1;
+        unsigned char mask = 0b11000000 >> ((frame_no - base_frame_no) % 4);
+
+        if(bitmap[bitmap_index] & mask == mask){
+            isSpace = check_sequence(frame_no, _n_frames);
+        }
     }
     mark_inaccessible(base_frame_no,_n_frames,frame_no);
     return (frame_no);
