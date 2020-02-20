@@ -175,10 +175,14 @@ unsigned long ContFramePool::get_frames(unsigned int _n_frames){
     bool isSpace = false;
     while(!isSpace){
         unsigned int bitmap_index = (frame_no - base_frame_no)/4;
-        unsigned char mask = 0b11000000 >> ((frame_no - base_frame_no) % 4);
+        unsigned char mask = 0b11000000 >> ((frame_no - base_frame_no) % 4)*2;
 
         if(bitmap[bitmap_index] & mask == mask){
             isSpace = check_sequence(frame_no, _n_frames);
+        }
+        
+        if(!isSpace){
+        	frame_no++;
         }
     }
     mark_inaccessible(base_frame_no,_n_frames,frame_no);
@@ -218,30 +222,30 @@ void ContFramePool::mark_inaccessible(unsigned long _base_frame_no,unsigned long
 void ContFramePool::release_frames(unsigned long frame_no){
 /*
     //make sure that info frame is not being released.
-    assert(frame_no != ContFramePool::info_frame_no);
+    assert(frame_no != info_frame_no);
 
-    unsigned int bitmap_index = ((frame_no - ContFramePool::base_frame_no) /4);
-    unsigned int offset = (((frame_no - ContFramePool::base_frame_no)%4)*2);
+    unsigned int bitmap_index = ((frame_no - base_frame_no) /4);
+    unsigned int offset = (((frame_no - base_frame_no)%4)*2);
 
     unsigned char mask = 0b00111111 >> offset;
 
     //Make sure the frame is start of sequence
-    assert(ContFramePool::bitmap[bitmap_index] | mask != mask);
+    assert(bitmap[bitmap_index] | mask != mask);
     //modify the bitmap to change the first frame
-    ContFramePool::bitmap[bitmap_index] ^= (0b11000000 >> ((frame_no - base_frame_no)%4)*2);
+    bitmap[bitmap_index] ^= (0b11000000 >> ((frame_no - base_frame_no)%4)*2);
     //checker to see if we have reached the end of sequence
     bool eos = false;
     unsigned int i = 1;
     while(!eos){
-    	bitmap_index = ((frame_no + i - ContFramePool::base_frame_no) /4);
-	offset = (((frame_no + i - ContFramePool::base_frame_no)%4)*2);
+    	bitmap_index = ((frame_no + i - base_frame_no) /4);
+	offset = (((frame_no + i - base_frame_no)%4)*2);
     	mask = 0b01000000 >> offset;
 	//checks for new beginning of sequence or unallocated frame
-	if(ContFramePool::bitmap[bitmap_index] & mask != mask){
+	if(bitmap[bitmap_index] & mask != mask){
 		eos = true;
 	}else{
 		//update bitmap
-		ContFramePool::bitmap[bitmap_index] ^= (0b10000000 >> offset);
+		bitmap[bitmap_index] ^= (0b10000000 >> offset);
 		nFreeFrames++;
 	}
 
