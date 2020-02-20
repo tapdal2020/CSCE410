@@ -208,8 +208,7 @@ bool ContFramePool::check_sequence(unsigned long first_frame, unsigned int n_fra
     	return true;
 }
 
-void ContFramePool::mark_inaccessible(unsigned long _base_frame_no,
-                                      unsigned long _n_frames, unsigned long frame_no){
+void ContFramePool::mark_inaccessible(unsigned long _base_frame_no,unsigned long _n_frames, unsigned long frame_no){
      // Let's first do a range check.
     assert (frame_no >= base_frame_no);
 
@@ -225,6 +224,9 @@ void ContFramePool::mark_inaccessible(unsigned long _base_frame_no,
 }
 
 void ContFramePool::release_frames(unsigned long frame_no){
+
+    //make sure that info frame is not being released.
+    assert(frame_no != ContFramePool::info_frame_no);
 
     unsigned int bitmap_index = ((frame_no - ContFramePool::base_frame_no) /4) -1;
     unsigned int offset = (((frame_no - ContFramePool::base_frame_no)%4)*2);

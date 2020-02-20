@@ -87,7 +87,7 @@ public:
      */
 
 
-    //checks to see if there are enough consecutive free frames for that space to be 		allocated
+    //checks to see if there are enough consecutive free frames for that space to be allocated
     bool check_sequence(unsigned long first_frame, unsigned int n_frames);
     
 
