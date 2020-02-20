@@ -86,11 +86,11 @@ public:
      If fails, returns 0.
      */
 
-    bool check_sequence(unsigned long first_frame, unsigned int n_frames);
-    //checks to see if there are enough consecutive free frames for that space to be allocated
 
-    void allocate_frames(unsigned long first_frame, unsigned int n_frames);
-    //updates the bitmap to reflect the newly allocated frames
+    //checks to see if there are enough consecutive free frames for that space to be 		allocated
+    bool check_sequence(unsigned long first_frame, unsigned int n_frames);
+    
+
     void mark_inaccessible(unsigned long _base_frame_no,
                            unsigned long _n_frames, unsigned long frame_no);
     /*
@@ -100,7 +100,7 @@ public:
      _n_frames: Number of contiguous frames to mark as inaccessible.
      */
     
-    static void release_frames(unsigned long _first_frame_no);
+    static void release_frames(unsigned long frame_no);
     /*
      Releases a previously allocated contiguous sequence of frames
      back to its frame pool.

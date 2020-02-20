@@ -1,6 +1,7 @@
 CPP = gcc
 CPP_OPTIONS = -m32 -nostdlib -fno-builtin -nostartfiles -nodefaultlibs -fno-exceptions -fno-rtti -fno-stack-protector -fleading-underscore -fno-asynchronous-unwind-tables
 
+
 all: kernel.bin
 
 clean:

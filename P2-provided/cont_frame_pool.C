@@ -158,7 +158,7 @@ ContFramePool::ContFramePool(unsigned long _base_frame_no,
     
     // Mark the first frame as being used if it is being used
     if(_info_frame_no == 0) {
-        bitmap[0] = 0x7F;
+        bitmap[0] = 0b00111111;
         nFreeFrames--;
     }
     
@@ -166,8 +166,7 @@ ContFramePool::ContFramePool(unsigned long _base_frame_no,
 
 }
 
-unsigned long ContFramePool::get_frames(unsigned int _n_frames)
-{
+unsigned long ContFramePool::get_frames(unsigned int _n_frames){
     //any frames left to allocate?
     assert(nFreeFrames > 0);
 
@@ -175,97 +174,90 @@ unsigned long ContFramePool::get_frames(unsigned int _n_frames)
     // Mark that frame as being used in the bitmap.
     unsigned int frame_no = base_frame_no;
     
-    unsigned int i = 0;
-    while (bitmap[i] == 0x0) {
-        i++;
-    }
-    
-    frame_no += i * 8;
-    
     unsigned char mask = 0b11000000; //sequence that checks is the space is free
     bool isSpace = false;
-
+    unsigned int i;
+    unsigned int count = 0;
     while(!isSpace){
-        while((mask & bitmap[i]) == 0){
-            mask = mask >> 2;
-            frame_no++;
-
-            if(mask == 0b00000011){
-                i++;
-                mask = 0b11000000;
-            }
-        }
-
+        while(bitmap[i] & mask == 0){
+		mask >> 2;
+		frame_no++;
+		count++;
+		i = (count / 4);
+	}
         isSpace = check_sequence(frame_no, _n_frames);
     }
-    
+    mark_inaccessible(base_frame_no,_n_frames,frame_no);
     return (frame_no);
 
 }
 
 bool ContFramePool::check_sequence(unsigned long first_frame, unsigned int n_frames){
 
-    for(unsigned long i = first_frame; i < first_frame + n_frames; i++){
-        unsigned char mask = 0b10000000 >> ((i*2)%8);
-        unsigned int bitmap_index = (i*2)/8;
-        if((bitmap[bitmap_index] & mask)==0){
-            return false;
-            break;
-        }
-    }
-    allocate_frames(first_frame, n_frames);
-    nFreeFrames -= n_frames;
-    return true;
-}
+	for(int i = 0; i < n_frames; i++){
+		
+	    unsigned int bitmap_index = ((first_frame + i - base_frame_no) / 4)-1;
+	    unsigned char mask = 0b11000000 >> (((first_frame + i - base_frame_no) % 4)*2);
+	    
+	    // Is the frame being used already?
+	    if((bitmap[bitmap_index] & mask) != mask){
+		return false;
+	    }
+	}
 
-void ContFramePool::allocate_frames(unsigned long first_frame, unsigned int n_frames){
-    for(unsigned long i = first_frame; i < first_frame + n_frames; i++){
-        unsigned char mask = 0b10000000 >> ((i*2)%8);
-        unsigned int bitmap_index = (i*2)/8;
-        if(i == first_frame){
-            mask = mask | (mask >> 1); //0b10000000 | 0b01000000 = 0b11000000
-        }
-        bitmap[bitmap_index] = bitmap[bitmap_index] ^ mask;
-    }
+    	return true;
 }
 
 void ContFramePool::mark_inaccessible(unsigned long _base_frame_no,
-                                      unsigned long _n_frames, unsigned long frame_no)
-{
+                                      unsigned long _n_frames, unsigned long frame_no){
      // Let's first do a range check.
-    assert ((frame_no >= base_frame_no) && (frame_no < base_frame_no + _n_frames));
+    assert (frame_no >= base_frame_no);
+
+	for(int i = 0; i < _n_frames; i++){
     
-    unsigned int bitmap_index = (frame_no - base_frame_no) / 8;
-    unsigned char mask = 0x80 >> ((frame_no - base_frame_no) % 8);
-    
-    // Is the frame being used already?
-    assert((bitmap[bitmap_index] & mask) != 0);
-    
-    // Update bitmap
-    bitmap[bitmap_index] ^= mask;
-    nFreeFrames--;
+	    unsigned int bitmap_index = ((frame_no + i - _base_frame_no) / 4)-1;
+	    unsigned char mask = 0b11000000 >> ((frame_no + i - _base_frame_no) % 4)*2;
+	    
+	    // Update bitmap
+	    bitmap[bitmap_index] ^= mask;
+	    nFreeFrames--;
+	}
 }
 
-void ContFramePool::release_frames(unsigned long _first_frame_no)
-{
-    /* // Check if the value is within the range
-    assert (_first_frame_no > 0 && _first_frame_no < n_frames);
-    
-    unsigned int bitmap_index = (frame_no - base_frame_no) / 8;
-    unsigned char mask = 0x80 >> ((frame_no - base_frame_no) % 8);
-    
-    // Is the frame already released?
-    assert((bitmap[bitmap_index] & mask) == 0);
-    
-    // Update bitmap
-    bitmap[bitmap_index] ^= mask;
-    nFreeFrames++;*/
+void ContFramePool::release_frames(unsigned long frame_no){
 
-    assert(false);
+    unsigned int bitmap_index = ((frame_no - ContFramePool::base_frame_no) /4) -1;
+    unsigned int offset = (((frame_no - ContFramePool::base_frame_no)%4)*2);
+
+    unsigned char mask = 0b00111111 >> offset;
+
+    //Make sure the frame is start of sequence
+    assert(ContFramePool::bitmap[bitmap_index] | mask != mask);
+    //modify the bitmap to change the first frame
+    ContFramePool::bitmap[bitmap_index] ^= (0b11000000 >> ((frame_no - base_frame_no)%4)*2);
+    //checker to see if we have reached the end of sequence
+    bool eos = false;
+    unsigned int i = 1;
+    while(!eos){
+    	bitmap_index = ((frame_no + i - ContFramePool::base_frame_no) /4) -1;
+	offset = (((frame_no + i - ContFramePool::base_frame_no)%4)*2);
+    	mask = 0b01000000 >> offset;
+	//checks for new beginning of sequence or unallocated frame
+	if(ContFramePool::bitmap[bitmap_index] & mask != mask){
+		eos = true;
+	}else{
+		//update bitmap
+		ContFramePool::bitmap[bitmap_index] ^= (0b10000000 >> offset);
+		nFreeFrames++;
+	}
+
+	i++;
+ 
+    }
 }
 
 unsigned long ContFramePool::needed_info_frames(unsigned long _n_frames)
 {
-    // TODO: IMPLEMENTATION NEEEDED!
-    assert(false);
+   unsigned long result = _n_frames / 32 + (_n_frames % 32 > 0 ? 1 : 0);
+   return result;
 }
