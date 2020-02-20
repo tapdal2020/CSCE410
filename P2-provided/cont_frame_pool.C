@@ -140,7 +140,6 @@ ContFramePool::ContFramePool(unsigned long _base_frame_no,
     nFreeFrames = _n_frames;
     info_frame_no = _info_frame_no;
     
-    
     // If _info_frame_no is zero then we keep management info in the first
     //frame, else we use the provided frame to keep management info
     if(info_frame_no == 0) {
@@ -162,9 +161,7 @@ ContFramePool::ContFramePool(unsigned long _base_frame_no,
         bitmap[0] = 0b00111111;
         nFreeFrames--;
     }
-    
     Console::puts("Frame Pool initialized\n");
-
 }
 
 unsigned long ContFramePool::get_frames(unsigned int _n_frames){
@@ -175,10 +172,9 @@ unsigned long ContFramePool::get_frames(unsigned int _n_frames){
     // Mark that frame as being used in the bitmap.
     unsigned int frame_no = base_frame_no;
     
-    unsigned char mask = 0b11000000; //sequence that checks is the space is free
     bool isSpace = false;
     while(!isSpace){
-        unsigned int bitmap_index = (frame_no - base_frame_no)/4 -1;
+        unsigned int bitmap_index = (frame_no - base_frame_no)/4;
         unsigned char mask = 0b11000000 >> ((frame_no - base_frame_no) % 4);
 
         if(bitmap[bitmap_index] & mask == mask){
@@ -187,22 +183,21 @@ unsigned long ContFramePool::get_frames(unsigned int _n_frames){
     }
     mark_inaccessible(base_frame_no,_n_frames,frame_no);
     return (frame_no);
-
 }
 
 bool ContFramePool::check_sequence(unsigned long first_frame, unsigned int n_frames){
 
 	for(int i = 0; i < n_frames; i++){
 		
-	    unsigned int bitmap_index = ((first_frame + i - base_frame_no) / 4)-1;
+	    unsigned int bitmap_index = ((first_frame + i - base_frame_no) / 4);
 	    unsigned char mask = 0b11000000 >> (((first_frame + i - base_frame_no) % 4)*2);
 	    
 	    // Is the frame being used already?
 	    if((bitmap[bitmap_index] & mask) != mask){
-		return false;
+		    return false;
 	    }
 	}
-    	return true;
+    return true;
 }
 
 void ContFramePool::mark_inaccessible(unsigned long _base_frame_no,unsigned long _n_frames, unsigned long frame_no){
@@ -211,7 +206,7 @@ void ContFramePool::mark_inaccessible(unsigned long _base_frame_no,unsigned long
 
 	for(int i = 0; i < _n_frames; i++){
     
-	    unsigned int bitmap_index = ((frame_no + i - _base_frame_no) / 4)-1;
+	    unsigned int bitmap_index = ((frame_no + i - _base_frame_no) / 4);
 	    unsigned char mask = 0b11000000 >> ((frame_no + i - _base_frame_no) % 4)*2;
 	    
 	    // Update bitmap
@@ -225,7 +220,7 @@ void ContFramePool::release_frames(unsigned long frame_no){
     //make sure that info frame is not being released.
     assert(frame_no != ContFramePool::info_frame_no);
 
-    unsigned int bitmap_index = ((frame_no - ContFramePool::base_frame_no) /4) -1;
+    unsigned int bitmap_index = ((frame_no - ContFramePool::base_frame_no) /4);
     unsigned int offset = (((frame_no - ContFramePool::base_frame_no)%4)*2);
 
     unsigned char mask = 0b00111111 >> offset;
@@ -238,7 +233,7 @@ void ContFramePool::release_frames(unsigned long frame_no){
     bool eos = false;
     unsigned int i = 1;
     while(!eos){
-    	bitmap_index = ((frame_no + i - ContFramePool::base_frame_no) /4) -1;
+    	bitmap_index = ((frame_no + i - ContFramePool::base_frame_no) /4);
 	offset = (((frame_no + i - ContFramePool::base_frame_no)%4)*2);
     	mask = 0b01000000 >> offset;
 	//checks for new beginning of sequence or unallocated frame
