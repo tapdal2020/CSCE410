@@ -140,6 +140,7 @@ ContFramePool::ContFramePool(unsigned long _base_frame_no,
     nFreeFrames = _n_frames;
     info_frame_no = _info_frame_no;
     
+    
     // If _info_frame_no is zero then we keep management info in the first
     //frame, else we use the provided frame to keep management info
     if(info_frame_no == 0) {
@@ -204,7 +205,6 @@ bool ContFramePool::check_sequence(unsigned long first_frame, unsigned int n_fra
 		return false;
 	    }
 	}
-
     	return true;
 }
 
@@ -224,7 +224,7 @@ void ContFramePool::mark_inaccessible(unsigned long _base_frame_no,unsigned long
 }
 
 void ContFramePool::release_frames(unsigned long frame_no){
-
+/*
     //make sure that info frame is not being released.
     assert(frame_no != ContFramePool::info_frame_no);
 
@@ -255,7 +255,7 @@ void ContFramePool::release_frames(unsigned long frame_no){
 
 	i++;
  
-    }
+    }*/
 }
 
 unsigned long ContFramePool::needed_info_frames(unsigned long _n_frames)
