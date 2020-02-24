@@ -47,6 +47,7 @@ private:
     unsigned long   base_frame_no; // Where does the frame pool start in phys mem?
     unsigned long   n_frames;       // Size of the frame pool
     unsigned long   info_frame_no; // Where do we store the management information?
+
 public:
 
     // The frame size is the same as the page size, duh...    
