@@ -115,7 +115,11 @@
 /* CONSTANTS */
 /*--------------------------------------------------------------------------*/
 
-/* -- (none) -- */
+    unsigned long base_frame_no;
+    unsigned long n_frames;
+    unsigned long nFreeFrames;
+    unsigned long info_frame_no;
+    unsigned char * bitmap;
 
 /*--------------------------------------------------------------------------*/
 /* FORWARDS */
@@ -128,35 +132,134 @@
 /*--------------------------------------------------------------------------*/
 
 ContFramePool::ContFramePool(unsigned long _base_frame_no,
-                             unsigned long _nframes,
+                             unsigned long _n_frames,
                              unsigned long _info_frame_no,
                              unsigned long _n_info_frames)
 {
-    // TODO: IMPLEMENTATION NEEEDED!
-    assert(false);
+    //bitmap needs to fit inside of the frame
+    assert(_n_frames <= FRAME_SIZE * 8);
+
+    base_frame_no = _base_frame_no;
+    n_frames = _n_frames;
+    nFreeFrames = _n_frames;
+    info_frame_no = _info_frame_no;
+    
+    // If _info_frame_no is zero then we keep management info in the first
+    //frame, else we use the provided frame to keep management info
+    if(info_frame_no == 0) {
+        bitmap = (unsigned char *) (base_frame_no * FRAME_SIZE);
+    } else {
+        bitmap = (unsigned char *) (info_frame_no * FRAME_SIZE);
+    }
+    
+    // Number of frames must be "fill" the bitmap!
+    assert ((n_frames % 8 ) == 0);
+    
+    // Everything ok. Proceed to mark all bits in the bitmap
+    for(int i=0; i*8 < n_frames; i++) {
+        bitmap[i] = 0xFF;
+    }
+    
+    // Mark the first frame as being used if it is being used
+    if(_info_frame_no == 0) {
+        bitmap[0] = 0b00111111;
+        nFreeFrames--;
+    }
+    Console::puts("Frame Pool initialized\n");
 }
 
-unsigned long ContFramePool::get_frames(unsigned int _n_frames)
-{
-    // TODO: IMPLEMENTATION NEEEDED!
-    assert(false);
+unsigned long ContFramePool::get_frames(unsigned long _n_frames){
+    //any frames left to allocate?
+    assert(nFreeFrames > 0);
+
+    // Find a frame that is not being used and return its frame index.
+    // Mark that frame as being used in the bitmap.
+    unsigned int frame_no = base_frame_no;
+    
+    bool isSpace = false;
+    while(!isSpace){
+        unsigned int bitmap_index = (frame_no - base_frame_no)/4;
+        unsigned char mask = 0b11000000 >> ((frame_no - base_frame_no) % 4)*2;
+
+        if(bitmap[bitmap_index] & mask == mask){
+            isSpace = check_sequence(frame_no, _n_frames);
+        }
+        
+        if(!isSpace){
+        	frame_no++;
+        }
+    }
+     assert (frame_no >= base_frame_no);
+
+	for(int i = 0; i < _n_frames; i++){
+    
+	    unsigned int bitmap_index = ((frame_no + i - base_frame_no) / 4);
+	    unsigned char mask = 0b11000000 >> ((frame_no + i - base_frame_no) % 4)*2;
+	    
+	    // Update bitmap
+	    bitmap[bitmap_index] ^= mask;
+	    nFreeFrames--;
+	}
+    return (frame_no);
 }
 
-void ContFramePool::mark_inaccessible(unsigned long _base_frame_no,
-                                      unsigned long _n_frames)
-{
-    // TODO: IMPLEMENTATION NEEEDED!
-    assert(false);
+bool ContFramePool::check_sequence(unsigned long first_frame, unsigned long n_frames){
+
+	for(int i = 0; i < n_frames; i++){
+		
+	    unsigned int bitmap_index = ((first_frame + i - base_frame_no) / 4);
+	    unsigned char mask = 0b11000000 >> (((first_frame + i - base_frame_no) % 4)*2);
+	    
+	    // Is the frame being used already?
+	    if((bitmap[bitmap_index] & mask) != mask){
+		    return false;
+	    }
+	}
+    return true;
 }
 
-void ContFramePool::release_frames(unsigned long _first_frame_no)
-{
-    // TODO: IMPLEMENTATION NEEEDED!
-    assert(false);
+void ContFramePool::mark_inaccessible(unsigned long _base_frame_no,unsigned long _n_frames){
+     assert(false);
+   
+}
+
+void ContFramePool::release_frames(unsigned long frame_no){
+/*
+    //make sure that info frame is not being released.
+    assert(frame_no != info_frame_no);
+
+    unsigned int bitmap_index = ((frame_no - base_frame_no) /4);
+    unsigned int offset = (((frame_no - base_frame_no)%4)*2);
+
+    unsigned char mask = 0b00111111 >> offset;
+
+    //Make sure the frame is start of sequence
+    assert(bitmap[bitmap_index] | mask != mask);
+    //modify the bitmap to change the first frame
+    bitmap[bitmap_index] ^= (0b11000000 >> ((frame_no - base_frame_no)%4)*2);
+    //checker to see if we have reached the end of sequence
+    bool eos = false;
+    unsigned int i = 1;
+    while(!eos){
+    	bitmap_index = ((frame_no + i - base_frame_no) /4);
+	offset = (((frame_no + i - base_frame_no)%4)*2);
+    	mask = 0b01000000 >> offset;
+	//checks for new beginning of sequence or unallocated frame
+	if(bitmap[bitmap_index] & mask != mask){
+		eos = true;
+	}else{
+		//update bitmap
+		bitmap[bitmap_index] ^= (0b10000000 >> offset);
+		nFreeFrames++;
+	}
+
+	i++;
+ 
+    }*/
 }
 
 unsigned long ContFramePool::needed_info_frames(unsigned long _n_frames)
 {
-    // TODO: IMPLEMENTATION NEEEDED!
-    assert(false);
+   unsigned long result = _n_frames / 32 + (_n_frames % 32 > 0 ? 1 : 0);
+   return result;
 }

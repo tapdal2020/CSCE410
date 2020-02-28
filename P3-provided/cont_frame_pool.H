@@ -73,7 +73,7 @@ public:
      is initialized.
      */
     
-    unsigned long get_frames(unsigned int _n_frames);
+    unsigned long get_frames(unsigned long _n_frames);
     /*
      Allocates a number of contiguous frames from the frame pool.
      _n_frames: Size of contiguous physical memory to allocate,
@@ -101,6 +101,8 @@ public:
      This function must first identify the correct frame pool and then call the frame
      pool's release_frame function.
      */
+
+     bool check_sequence(unsigned long first_frame, unsigned long n_frames);
     
     static unsigned long needed_info_frames(unsigned long _n_frames);
     /*
