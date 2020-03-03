@@ -261,8 +261,7 @@ void ContFramePool::release_frames(unsigned long frame_no){
             //Make sure the frame is start of sequence
             if(poolList[i]->bitmap[bitmap_index] | mask != mask){
             	return;
-            }
-            else{
+            }else{
             	//modify the bitmap to change the first frame
 		        poolList[i]->bitmap[bitmap_index] ^= (0b11000000 >> ((frame_no - poolList[i]->base_frame_no)%4)*2);
 		        //checker to see if we have reached the end of sequence
@@ -272,9 +271,24 @@ void ContFramePool::release_frames(unsigned long frame_no){
 		        while(!eos){
 		            bitmap_index = ((frame_no + i - poolList[i]->base_frame_no) /4);
 		            offset = (((frame_no + i - poolList[i]->base_frame_no)%4)*2);
-		            mask = 0b01000000 >> offset;
+
+                    unsigned char mask_hos;
+                    unsigned char mask_free;
+                    unsigned char mask_inac;
+
+                    if(offset == 0){
+                        mask_hos = 0x3F;
+                    }else if(offset == 2){
+                        mask_hos = 0xCF;
+                    }else if(offset == 4){
+                        mask_hos = 0xF3;
+                    }else if(offset == 6){
+                        mask_hos = 0xFC;
+                    }
+		            mask_free = 0b11000000 >> offset;
+                    mask_inac = 0b10000000 >> offset;
 		            //checks to see if status is still taken
-		            if(poolList[i]->bitmap[bitmap_index] & mask != mask){
+		            if(poolList[i]->bitmap[bitmap_index] | mask_hos != mask_hos || poolList[i]->bitmap[bitmap_index] & mask_free != mask_free || poolList[i]->bitmap[bitmap_index] | mask_inac != mask_inac){
 		                //update to break while loop
 		                eos = true;
 		            }else{
