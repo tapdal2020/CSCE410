@@ -126,6 +126,7 @@
 /*--------------------------------------------------------------------------*/
 /* METHODS FOR CLASS   C o n t F r a m e P o o l */
 /*--------------------------------------------------------------------------*/
+int ContFramePool::numPools = 0;
 
 ContFramePool::ContFramePool(unsigned long _base_frame_no,unsigned long _n_frames,unsigned long _info_frame_no,unsigned long _n_info_frames){
 
@@ -157,7 +158,7 @@ ContFramePool::ContFramePool(unsigned long _base_frame_no,unsigned long _n_frame
     assert ((n_frames % 8 ) == 0);
     
     // Everything ok. Proceed to mark all bits in the bitmap
-    for(int i=0; i*8 < n_frames; i++) {
+    for(int i=0; i < n_frames/4; i++) {
         bitmap[i] = 0xFF;
     }
     

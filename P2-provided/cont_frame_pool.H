@@ -52,6 +52,7 @@ public:
 
     // The frame size is the same as the page size, duh...    
     static const unsigned int FRAME_SIZE = Machine::PAGE_SIZE; 
+
     static int numPools;
     static ContFramePool * poolList[5];
 
@@ -128,5 +129,4 @@ public:
      The exact number is computed in this function..
      */
 };
-
 #endif
