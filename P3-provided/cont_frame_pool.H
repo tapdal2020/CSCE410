@@ -42,11 +42,19 @@ class ContFramePool {
     
 private:
     /* -- DEFINE YOUR CONT FRAME POOL DATA STRUCTURE(s) HERE. */
-    
+    unsigned char * bitmap;        // We implement the simple frame pool with a bitmap
+    unsigned int    nFreeFrames;   //
+    unsigned long   base_frame_no; // Where does the frame pool start in phys mem?
+    unsigned long   n_frames;       // Size of the frame pool
+    unsigned long   info_frame_no; // Where do we store the management information?
+
 public:
 
     // The frame size is the same as the page size, duh...    
     static const unsigned int FRAME_SIZE = Machine::PAGE_SIZE; 
+
+    static int numPools;
+    static ContFramePool * poolList[5];
 
     ContFramePool(unsigned long _base_frame_no,
                   unsigned long _n_frames,
@@ -57,7 +65,7 @@ public:
      frame pool.
      _base_frame_no: Number of first frame managed by this frame pool.
      _n_frames: Size, in frames, of this frame pool.
-     EXAMPLE: If _base_frame_no is 16 and _nframes is 4, this frame pool manages
+     EXAMPLE: If _base_frame_no is 16 and _n_frames is 4, this frame pool manages
      physical frames numbered 16, 17, 18 and 19.
      _info_frame_no: Number of the first frame that should be used to store the
      management information for the frame pool.
@@ -73,7 +81,7 @@ public:
      is initialized.
      */
     
-    unsigned long get_frames(unsigned long _n_frames);
+    unsigned long get_frames(unsigned int _n_frames);
     /*
      Allocates a number of contiguous frames from the frame pool.
      _n_frames: Size of contiguous physical memory to allocate,
@@ -81,7 +89,12 @@ public:
      If successful, returns the frame number of the first frame.
      If fails, returns 0.
      */
+
+
+    //checks to see if there are enough consecutive free frames for that space to be allocated
+    bool check_sequence(unsigned long first_frame, unsigned int n_frames);
     
+
     void mark_inaccessible(unsigned long _base_frame_no,
                            unsigned long _n_frames);
     /*
@@ -91,7 +104,7 @@ public:
      _n_frames: Number of contiguous frames to mark as inaccessible.
      */
     
-    static void release_frames(unsigned long _first_frame_no);
+    static void release_frames(unsigned long frame_no);
     /*
      Releases a previously allocated contiguous sequence of frames
      back to its frame pool.
@@ -101,8 +114,6 @@ public:
      This function must first identify the correct frame pool and then call the frame
      pool's release_frame function.
      */
-
-     bool check_sequence(unsigned long first_frame, unsigned long n_frames);
     
     static unsigned long needed_info_frames(unsigned long _n_frames);
     /*

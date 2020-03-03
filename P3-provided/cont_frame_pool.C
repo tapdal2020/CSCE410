@@ -115,11 +115,7 @@
 /* CONSTANTS */
 /*--------------------------------------------------------------------------*/
 
-    unsigned long base_frame_no;
-    unsigned long n_frames;
-    unsigned long nFreeFrames;
-    unsigned long info_frame_no;
-    unsigned char * bitmap;
+/* -- (none) -- */
 
 /*--------------------------------------------------------------------------*/
 /* FORWARDS */
@@ -130,12 +126,11 @@
 /*--------------------------------------------------------------------------*/
 /* METHODS FOR CLASS   C o n t F r a m e P o o l */
 /*--------------------------------------------------------------------------*/
+int ContFramePool::numPools = 0;
+ContFramePool * ContFramePool::poolList[5] = {NULL,NULL,NULL,NULL,NULL};
 
-ContFramePool::ContFramePool(unsigned long _base_frame_no,
-                             unsigned long _n_frames,
-                             unsigned long _info_frame_no,
-                             unsigned long _n_info_frames)
-{
+ContFramePool::ContFramePool(unsigned long _base_frame_no,unsigned long _n_frames,unsigned long _info_frame_no,unsigned long _n_info_frames){
+
     //bitmap needs to fit inside of the frame
     assert(_n_frames <= FRAME_SIZE * 8);
 
@@ -143,6 +138,14 @@ ContFramePool::ContFramePool(unsigned long _base_frame_no,
     n_frames = _n_frames;
     nFreeFrames = _n_frames;
     info_frame_no = _info_frame_no;
+
+    //add new ContFramePool object to the list
+    //increment number of pools
+
+    assert(numPools <= 5);
+
+    poolList[numPools] = this;
+    numPools++;
     
     // If _info_frame_no is zero then we keep management info in the first
     //frame, else we use the provided frame to keep management info
@@ -156,7 +159,7 @@ ContFramePool::ContFramePool(unsigned long _base_frame_no,
     assert ((n_frames % 8 ) == 0);
     
     // Everything ok. Proceed to mark all bits in the bitmap
-    for(int i=0; i*8 < n_frames; i++) {
+    for(int i=0; i < n_frames/4; i++) {
         bitmap[i] = 0xFF;
     }
     
@@ -168,7 +171,7 @@ ContFramePool::ContFramePool(unsigned long _base_frame_no,
     Console::puts("Frame Pool initialized\n");
 }
 
-unsigned long ContFramePool::get_frames(unsigned long _n_frames){
+unsigned long ContFramePool::get_frames(unsigned int _n_frames){
     //any frames left to allocate?
     assert(nFreeFrames > 0);
 
@@ -189,7 +192,7 @@ unsigned long ContFramePool::get_frames(unsigned long _n_frames){
         	frame_no++;
         }
     }
-     assert (frame_no >= base_frame_no);
+    assert (frame_no >= base_frame_no);
 
 	for(int i = 0; i < _n_frames; i++){
     
@@ -203,7 +206,7 @@ unsigned long ContFramePool::get_frames(unsigned long _n_frames){
     return (frame_no);
 }
 
-bool ContFramePool::check_sequence(unsigned long first_frame, unsigned long n_frames){
+bool ContFramePool::check_sequence(unsigned long first_frame, unsigned int n_frames){
 
 	for(int i = 0; i < n_frames; i++){
 		
@@ -219,43 +222,85 @@ bool ContFramePool::check_sequence(unsigned long first_frame, unsigned long n_fr
 }
 
 void ContFramePool::mark_inaccessible(unsigned long _base_frame_no,unsigned long _n_frames){
-     assert(false);
-   
+    //need to implement so that kernel.C can allocate the hole memory as inaccessible
+
+    for(int i = 0; i < _n_frames; i++){
+    
+	    unsigned int bitmap_index = ((base_frame_no + i) / 4);
+	    unsigned char mask = 0b10000000 >> ((base_frame_no + i) % 4)*2; //make sure this works
+	    
+	    // Update bitmap
+	    bitmap[bitmap_index] &= mask;
+	    nFreeFrames--;
+	}
 }
 
 void ContFramePool::release_frames(unsigned long frame_no){
-/*
-    //make sure that info frame is not being released.
-    assert(frame_no != info_frame_no);
 
-    unsigned int bitmap_index = ((frame_no - base_frame_no) /4);
-    unsigned int offset = (((frame_no - base_frame_no)%4)*2);
+    //find the pool that contains target frame_no
 
-    unsigned char mask = 0b00111111 >> offset;
+    for(int i = 0; i < numPools; i++){
+        if(frame_no >= poolList[i]->base_frame_no && frame_no < poolList[i]->base_frame_no + poolList[i]->n_frames){
+            //make sure that info frame is not being released.
+            assert(frame_no != poolList[i]->info_frame_no);
 
-    //Make sure the frame is start of sequence
-    assert(bitmap[bitmap_index] | mask != mask);
-    //modify the bitmap to change the first frame
-    bitmap[bitmap_index] ^= (0b11000000 >> ((frame_no - base_frame_no)%4)*2);
-    //checker to see if we have reached the end of sequence
-    bool eos = false;
-    unsigned int i = 1;
-    while(!eos){
-    	bitmap_index = ((frame_no + i - base_frame_no) /4);
-	offset = (((frame_no + i - base_frame_no)%4)*2);
-    	mask = 0b01000000 >> offset;
-	//checks for new beginning of sequence or unallocated frame
-	if(bitmap[bitmap_index] & mask != mask){
-		eos = true;
-	}else{
-		//update bitmap
-		bitmap[bitmap_index] ^= (0b10000000 >> offset);
-		nFreeFrames++;
-	}
+            unsigned int bitmap_index = ((frame_no - poolList[i]->base_frame_no) /4);
+            unsigned int offset = (((frame_no - poolList[i]->base_frame_no)%4)*2);
+            unsigned char mask;
 
-	i++;
- 
-    }*/
+            if(offset == 0){
+                mask = 0x3F;
+            }else if(offset == 2){
+                mask = 0xCF;
+            }else if(offset == 4){
+                mask = 0xF3;
+            }else if(offset == 6){
+                mask = 0xFC;
+            }
+            
+            //Make sure the frame is start of sequence
+            if(poolList[i]->bitmap[bitmap_index] | mask != mask){
+            	return;
+            }else{
+            	//modify the bitmap to change the first frame
+		        poolList[i]->bitmap[bitmap_index] ^= (0b11000000 >> ((frame_no - poolList[i]->base_frame_no)%4)*2);
+		        //checker to see if we have reached the end of sequence
+		        bool eos = false;
+		        unsigned int i = 1;
+		        //while taken
+		        while(!eos){
+		            bitmap_index = ((frame_no + i - poolList[i]->base_frame_no) /4);
+		            offset = (((frame_no + i - poolList[i]->base_frame_no)%4)*2);
+
+                    unsigned char mask_hos;
+                    unsigned char mask_free;
+                    unsigned char mask_inac;
+
+                    if(offset == 0){
+                        mask_hos = 0x3F;
+                    }else if(offset == 2){
+                        mask_hos = 0xCF;
+                    }else if(offset == 4){
+                        mask_hos = 0xF3;
+                    }else if(offset == 6){
+                        mask_hos = 0xFC;
+                    }
+		            mask_free = 0b11000000 >> offset;
+                    mask_inac = 0b10000000 >> offset;
+		            //checks to see if status is still taken
+		            if(poolList[i]->bitmap[bitmap_index] | mask_hos != mask_hos || poolList[i]->bitmap[bitmap_index] & mask_free != mask_free || poolList[i]->bitmap[bitmap_index] | mask_inac != mask_inac){
+		                //update to break while loop
+		                eos = true;
+		            }else{
+		                //update bitmap
+		                poolList[i]->bitmap[bitmap_index] ^= (0b10000000 >> offset);
+		                poolList[i]->nFreeFrames++;
+		            }
+		            i++;
+		     	}
+            }
+        }
+    }
 }
 
 unsigned long ContFramePool::needed_info_frames(unsigned long _n_frames)
