@@ -15,7 +15,6 @@ void PageTable::init_paging(ContFramePool * _kernel_mem_pool,ContFramePool * _pr
    kernel_mem_pool = _kernel_mem_pool;
    process_mem_pool = _process_mem_pool;
    shared_size = _shared_size;
-   current_page_table = new PageTable();
    Console::puts("Initialized Paging System\n");
 }
 
@@ -48,6 +47,7 @@ PageTable::PageTable(){
 void PageTable::load()
 {
    write_cr3(*(current_page_table->page_directory)); //put the page directory address into CR3
+   PageTable::current_page_table = this;
    Console::puts("Loaded page table\n");
 }
 
