@@ -23,8 +23,8 @@ PageTable::PageTable(){
    unsigned long * page_directory;
    unsigned long * page_table;
    
-   page_directory = (unsigned long *) 0x9C000;
-   page_table = (unsigned long *) 0x9D000;
+   page_directory = (unsigned long *) 0x0000;
+   page_table = (unsigned long *) 0x01000;
 
    unsigned long address = 0;
    unsigned int i;
@@ -46,8 +46,8 @@ PageTable::PageTable(){
 
 void PageTable::load()
 {
-   write_cr3(*(current_page_table->page_directory)); //put the page directory address into CR3
    PageTable::current_page_table = this;
+   write_cr3(*(current_page_table->page_directory)); //put the page directory address into CR3
    Console::puts("Loaded page table\n");
 }
 
