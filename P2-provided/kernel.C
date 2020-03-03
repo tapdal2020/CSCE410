@@ -92,10 +92,10 @@ int main() {
     Console::puts("Hello World!\n");
 
     /* -- TEST MEMORY ALLOCATOR */
-    Console::puts("Testing Kernel Memory");
+    Console::puts("Testing Kernel Memory\n");
     test_memory(&kernel_mem_pool, 32);
-    //Console::puts("Testing Process Memory");
-    //test_memory(&process_mem_pool, 32);
+    Console::puts("Testing Process Memory\n");
+    test_memory(&process_mem_pool, 32);
 
     /* ---- Add code here to test the frame pool implementation. */
     
@@ -131,7 +131,5 @@ void test_memory(ContFramePool * _pool, unsigned int _allocs_to_go) {
         }
         ContFramePool::release_frames(frame);
     }
-   
-    Console::puts("Frames Released");
 }
 
