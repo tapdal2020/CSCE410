@@ -127,6 +127,7 @@
 /* METHODS FOR CLASS   C o n t F r a m e P o o l */
 /*--------------------------------------------------------------------------*/
 int ContFramePool::numPools = 0;
+ContFramePool * ContFramePool::poolList[5] = {NULL,NULL,NULL,NULL,NULL};
 
 ContFramePool::ContFramePool(unsigned long _base_frame_no,unsigned long _n_frames,unsigned long _info_frame_no,unsigned long _n_info_frames){
 
@@ -250,27 +251,31 @@ void ContFramePool::release_frames(unsigned long frame_no){
             unsigned char mask = 0b00111111 >> offset;
 
             //Make sure the frame is start of sequence
-            assert(poolList[i]->bitmap[bitmap_index] | mask != mask);
-            //modify the bitmap to change the first frame
-            poolList[i]->bitmap[bitmap_index] ^= (0b11000000 >> ((frame_no - poolList[i]->base_frame_no)%4)*2);
-            //checker to see if we have reached the end of sequence
-            bool eos = false;
-            unsigned int i = 1;
-            //while taken
-            while(!eos){
-                bitmap_index = ((frame_no + i - poolList[i]->base_frame_no) /4);
-                offset = (((frame_no + i - poolList[i]->base_frame_no)%4)*2);
-                mask = 0b01000000 >> offset;
-                //checks to see if status is still taken
-                if(poolList[i]->bitmap[bitmap_index] & mask != mask){
-                    //update to break while loop
-                    eos = true;
-                }else{
-                    //update bitmap
-                    poolList[i]->bitmap[bitmap_index] ^= (0b10000000 >> offset);
-                    poolList[i]->nFreeFrames++;
-                }
-                i++;
+            if(poolList[i]->bitmap[bitmap_index] | mask != mask){
+            	return;
+            }
+            else{
+            	//modify the bitmap to change the first frame
+		        poolList[i]->bitmap[bitmap_index] ^= (0b11000000 >> ((frame_no - poolList[i]->base_frame_no)%4)*2);
+		        //checker to see if we have reached the end of sequence
+		        bool eos = false;
+		        unsigned int i = 1;
+		        //while taken
+		        while(!eos){
+		            bitmap_index = ((frame_no + i - poolList[i]->base_frame_no) /4);
+		            offset = (((frame_no + i - poolList[i]->base_frame_no)%4)*2);
+		            mask = 0b01000000 >> offset;
+		            //checks to see if status is still taken
+		            if(poolList[i]->bitmap[bitmap_index] & mask != mask){
+		                //update to break while loop
+		                eos = true;
+		            }else{
+		                //update bitmap
+		                poolList[i]->bitmap[bitmap_index] ^= (0b10000000 >> offset);
+		                poolList[i]->nFreeFrames++;
+		            }
+		            i++;
+		     	}
             }
         }
     }

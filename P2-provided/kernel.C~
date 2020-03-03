@@ -75,7 +75,7 @@ int main() {
 
     /* ---- PROCESS POOL -- */
 
-/*
+
     unsigned long n_info_frames = ContFramePool::needed_info_frames(PROCESS_POOL_SIZE);
 
     unsigned long process_mem_pool_info_frame = kernel_mem_pool.get_frames(n_info_frames);
@@ -86,14 +86,16 @@ int main() {
                                    n_info_frames);
     
     process_mem_pool.mark_inaccessible(MEM_HOLE_START_FRAME, MEM_HOLE_SIZE);
-*/
+
     /* -- MOST OF WHAT WE NEED IS SETUP. THE KERNEL CAN START. */
 
     Console::puts("Hello World!\n");
 
     /* -- TEST MEMORY ALLOCATOR */
-    
+    Console::puts("Testing Kernel Memory");
     test_memory(&kernel_mem_pool, 32);
+    //Console::puts("Testing Process Memory");
+    //test_memory(&process_mem_pool, 32);
 
     /* ---- Add code here to test the frame pool implementation. */
     
@@ -108,7 +110,7 @@ int main() {
 }
 
 void test_memory(ContFramePool * _pool, unsigned int _allocs_to_go) {
-    Console::puts("alloc_to_go = "); Console::puti(_allocs_to_go); Console::puts("\n");
+    //Console::puts("alloc_to_go = "); Console::puti(_allocs_to_go); Console::puts("\n");
     if (_allocs_to_go > 0) {
         int n_frames = _allocs_to_go % 4 + 1;
         unsigned long frame = _pool->get_frames(n_frames);
@@ -116,7 +118,7 @@ void test_memory(ContFramePool * _pool, unsigned int _allocs_to_go) {
         for (int i = 0; i < (1 KB) * n_frames; i++) {
             value_array[i] = _allocs_to_go;
         }
-        test_memory(_pool, _allocs_to_go - n_frames);
+        test_memory(_pool, _allocs_to_go - 1);
         for (int i = 0; i < (1 KB) * n_frames; i++) {
             if(value_array[i] != _allocs_to_go){
                 Console::puts("MEMORY TEST FAILED. ERROR IN FRAME POOL\n");
@@ -129,5 +131,7 @@ void test_memory(ContFramePool * _pool, unsigned int _allocs_to_go) {
         }
         ContFramePool::release_frames(frame);
     }
+   
+    Console::puts("Frames Released");
 }
 
