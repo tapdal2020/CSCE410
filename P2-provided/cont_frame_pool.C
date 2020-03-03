@@ -230,10 +230,9 @@ void ContFramePool::mark_inaccessible(unsigned long _base_frame_no,unsigned long
 	    unsigned char mask = 0b10000000 >> ((base_frame_no + i) % 4)*2; //make sure this works
 	    
 	    // Update bitmap
-	    bitmap[bitmap_index] ^= mask;
+	    bitmap[bitmap_index] &= mask;
 	    nFreeFrames--;
 	}
-    
 }
 
 void ContFramePool::release_frames(unsigned long frame_no){
@@ -247,9 +246,18 @@ void ContFramePool::release_frames(unsigned long frame_no){
 
             unsigned int bitmap_index = ((frame_no - poolList[i]->base_frame_no) /4);
             unsigned int offset = (((frame_no - poolList[i]->base_frame_no)%4)*2);
+            unsigned char mask;
 
-            unsigned char mask = 0b00111111 >> offset;
-
+            if(offset == 0){
+                mask = 0x3F;
+            }else if(offset == 2){
+                mask = 0xCF;
+            }else if(offset == 4){
+                mask = 0xF3;
+            }else if(offset == 6){
+                mask = 0xFC;
+            }
+            
             //Make sure the frame is start of sequence
             if(poolList[i]->bitmap[bitmap_index] | mask != mask){
             	return;
