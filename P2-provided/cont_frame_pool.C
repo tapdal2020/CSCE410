@@ -185,7 +185,17 @@ unsigned long ContFramePool::get_frames(unsigned int _n_frames){
         	frame_no++;
         }
     }
-    mark_inaccessible(base_frame_no,_n_frames,frame_no);
+    assert (frame_no >= base_frame_no);
+
+	for(int i = 0; i < _n_frames; i++){
+    
+	    unsigned int bitmap_index = ((frame_no + i - base_frame_no) / 4);
+	    unsigned char mask = 0b11000000 >> ((frame_no + i - base_frame_no) % 4)*2;
+	    
+	    // Update bitmap
+	    bitmap[bitmap_index] ^= mask;
+	    nFreeFrames--;
+	}
     return (frame_no);
 }
 
@@ -204,19 +214,9 @@ bool ContFramePool::check_sequence(unsigned long first_frame, unsigned int n_fra
     return true;
 }
 
-void ContFramePool::mark_inaccessible(unsigned long _base_frame_no,unsigned long _n_frames, unsigned long frame_no){
+void ContFramePool::mark_inaccessible(unsigned long _base_frame_no,unsigned long _n_frames){
      // Let's first do a range check.
-    assert (frame_no >= base_frame_no);
-
-	for(int i = 0; i < _n_frames; i++){
     
-	    unsigned int bitmap_index = ((frame_no + i - _base_frame_no) / 4);
-	    unsigned char mask = 0b11000000 >> ((frame_no + i - _base_frame_no) % 4)*2;
-	    
-	    // Update bitmap
-	    bitmap[bitmap_index] ^= mask;
-	    nFreeFrames--;
-	}
 }
 
 void ContFramePool::release_frames(unsigned long frame_no){

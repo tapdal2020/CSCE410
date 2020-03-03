@@ -93,7 +93,7 @@ public:
     
 
     void mark_inaccessible(unsigned long _base_frame_no,
-                           unsigned long _n_frames, unsigned long frame_no);
+                           unsigned long _n_frames);
     /*
      Marks a contiguous area of physical memory, i.e., a contiguous
      sequence of frames, as inaccessible.
