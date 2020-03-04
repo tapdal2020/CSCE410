@@ -151,11 +151,12 @@ int main() {
                            4 MB); /* We share the first 4MB */
     
     PageTable pt;
-    
+    Console::puts("Exiting PageTable Constructor");
+    Console::puts("Entering load function");
     pt.load();
-    
+    Console::puts("Exiting load function");
+    Console::puts("Entering Enable Paging");
     PageTable::enable_paging();
-    
     Console::puts("WE TURNED ON PAGING!\n");
     Console::puts("If we see this message, the page tables have been\n");
     Console::puts("set up mostly correctly.\n");
