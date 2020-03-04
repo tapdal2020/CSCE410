@@ -20,40 +20,17 @@ void PageTable::init_paging(ContFramePool * _kernel_mem_pool,ContFramePool * _pr
 
 PageTable::PageTable(){
 
-   unsigned long * page_directory;
-   unsigned long * page_table;
-   
-   page_directory = (unsigned long *) 0x0000;
-   page_table = (unsigned long *) 0x01000;
-
-   unsigned long address = 0;
-   unsigned int i;
-
-   //fill the first entry of the page directory
-   page_directory[0] = *page_table;
-   page_directory[0] = page_directory[0] | 3; //attribute set to: supervisor level, read/write, present
-   for(i = 0; i < 1024; i++){
-      page_table[i] = address | 3; //attribute set to: supervisor level, read/write, present
-      address = address + 4096;
-   }
-   //map the first 4MB of memory
-   for(i = 1; i < 1024; i++){
-      page_directory[i] = 0 | 2; //attribute set to: supervisor level, read/write, not present
-   }
    Console::puts("Constructed Page Table object\n");
 }
 
 
 void PageTable::load()
 {
-   PageTable::current_page_table = this;
-   write_cr3(*(current_page_table->page_directory)); //put the page directory address into CR3
    Console::puts("Loaded page table\n");
 }
 
 void PageTable::enable_paging()
 {
-   write_cr0(read_cr0() | 0x80000000); // set the paging bit in CR0 to 1
    Console::puts("Enabled paging\n");
 }
 
