@@ -18,7 +18,7 @@ void PageTable::init_paging(ContFramePool * _kernel_mem_pool,ContFramePool * _pr
 }
 
 PageTable::PageTable(){
-Console::puts("Enter Page Table Constructor\n");
+
 	unsigned long frame = kernel_mem_pool->get_frames(1);
 	long unsigned int * page_table = (long unsigned int*)(frame * PAGE_SIZE);
 	unsigned long pdframe = kernel_mem_pool->get_frames(1);
@@ -26,15 +26,14 @@ Console::puts("Enter Page Table Constructor\n");
 	unsigned long address = 0;
 	unsigned int i;
 	
-	Console::puts("Map first 4MB of Memory\n");
+	
 	for(i = 0; i <1024; i++){
 		page_table[i] = address | 3;
 		address = address + 4096;
 	}
-	Console::puts("Fill first entry of page directory\n");
+	
 	page_directory[0] = (unsigned long) page_table;
 	page_directory[0] = page_directory[0] | 3;
-	Console::puts("Filling rest of page directory\n");
 	for(i = 1; i < 1024; i++){
 		//Console::puts("New Entry Created\n");
 		this->page_directory[i] = 0 | 2;
@@ -45,10 +44,7 @@ Console::puts("Enter Page Table Constructor\n");
 
 void PageTable::load()
 {
-	Console::puts("Entered load function\n");
-	Console::puts("Set current_page_table\n");
 	current_page_table = this;
-	Console::puts("Load current page table's page directory into CR3\n");
 	write_cr3((unsigned long)current_page_table->page_directory);
 
    	Console::puts("Loaded page table\n");
@@ -63,8 +59,12 @@ void PageTable::enable_paging()
 
 void PageTable::handle_fault(REGS * _r)
 {
-	Console::puts("Entered handle_fault\n");
-  	assert(true);
+	//locates a frame in the frame pool, maps page to it
+	//marks page present
+	//returns
+  	
+	unsigned long* address = (unsigned long*)read_cr2();
+	Console::puts((char *)address); 
   	Console::puts("handled page fault\n");
 }
 
