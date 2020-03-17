@@ -41,7 +41,6 @@ PageTable::PageTable(){
     Console::puts("Constructed Page Table object\n");
 }
 
-
 void PageTable::load()
 {
 	current_page_table = this;
@@ -59,10 +58,16 @@ void PageTable::enable_paging()
 
 void PageTable::handle_fault(REGS * _r)
 {
-	//locates a frame in the frame pool, maps page to it
-	//marks page present
-	//returns
+	unsigned int address = read_cr2();
+   unsigned int regs = (unsigned int) regs;
+
+   Console::puts("address: ");
+   Console::putui(address);
+   Console::puts("\n");
+
+   Console::puts("regs: ");
+   Console::putui(regs);
+   Console::puts("\n");
   	
-	
 }
 
