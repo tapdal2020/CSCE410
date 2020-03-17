@@ -135,10 +135,12 @@ void ExceptionHandler::dispatch_exception(REGS * _r) {
   /* -- EXCEPTION NUMBER */
   unsigned int exc_no = _r->int_no;
 
+#ifdef EPRINT
   Console::puts("EXCEPTION DISPATCHER: exc_no = ");
   Console::putui(exc_no);
   Console::puts("\n");
-
+#endif // #ifdef EPRINT
+  
   assert((exc_no >= 0) && (exc_no < EXCEPTION_TABLE_SIZE));
 
   /* -- HAS A HANDLER BEEN REGISTERED FOR THIS EXCEPTION NO? */

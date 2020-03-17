@@ -56,13 +56,16 @@ void SimpleTimer::handle_interrupt(REGS *_r) {
 
     /* Increment our "ticks" count */
     ticks++;
-
+ 
     /* Whenever a second is over, we update counter accordingly. */
     if (ticks >= hz )
     {
         seconds++;
         ticks = 0;
-        Console::puts("One second has passed\n");
+	if (seconds % (60 * 5) == 0) {
+	    Console::puti(seconds/60);
+	    Console::puts(" minutes have passed\n");
+	}
     }
 }
 
@@ -71,11 +74,11 @@ void SimpleTimer::set_frequency(int _hz) {
 /* Set the interrupt frequency for the simple timer.
    Preferably set this before installing the timer handler!                 */
 
-    hz = _hz;                            /* Remember the frequency.           */
-    int divisor = 1193180 / _hz;         /* The input clock runs at 1.19MHz   */
-    Machine::outportb(0x43, 0x34);                /* Set command byte to be 0x36.      */
-    Machine::outportb(0x40, divisor & 0xFF);      /* Set low byte of divisor.          */
-    Machine::outportb(0x40, divisor >> 8);        /* Set high byte of divisor.         */
+  hz = _hz;                            /* Remember the frequency.           */
+  int divisor = 1193180 / _hz;         /* The input clock runs at 1.19MHz   */
+  outportb(0x43, 0x34);                /* Set command byte to be 0x36.      */
+  outportb(0x40, divisor & 0xFF);      /* Set low byte of divisor.          */
+  outportb(0x40, divisor >> 8);        /* Set high byte of divisor.         */
 }
 
 void SimpleTimer::current(unsigned long * _seconds, int * _ticks) {

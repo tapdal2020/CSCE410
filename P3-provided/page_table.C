@@ -63,8 +63,6 @@ void PageTable::handle_fault(REGS * _r)
 	//marks page present
 	//returns
   	
-	unsigned long* address = (unsigned long*)read_cr2();
-	Console::puts((char *)address); 
-  	Console::puts("handled page fault\n");
+	
 }
 
