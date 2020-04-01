@@ -63,8 +63,36 @@ void PageTable::enable_paging()
 
 void PageTable::handle_fault(REGS * _r)
 {
-	Console::puts("Entered handle_fault\n");
-  	assert(true);
-  	Console::puts("handled page fault\n");
+	Machine::enable_interrupts();
+	unsigned long address = read_cr2();
+	unsigned long p_num = address >> 12;
+	unsigned long p_index = address >> 22;
+
+	if((current_page_table->page_directory[p_index] & 0x1)!=0x1){
+		unsigned long * page = (unsigned long *) (kernel_mem_pool->get_frames(1)*PAGE_SIZE);
+		for(int i = 0; i < PAGE_SIZE; i++){
+			page[i]=0x2;
+		}
+	current_page_table->page_directory[p_index] = (unsigned long)page;
+	current_page_table->page_directory[p_index] |= 0x3;
+	
+	}
+
+	unsigned long * page = (unsigned long *)(current_page_table->page_directory[p_index] & 0xFFFFF000);
+
+	p_index = (p_num) & (0x000003FF);
+
+	unsigned long new_frame = process_mem_pool->get_frames(1);
+
+	unsigned long new_frame_addr = new_frame * PAGE_SIZE;
+	page[p_index] = new_frame_addr | 0x3;
+}
+
+void PageTable::register_pool(VM_pool * _pool){
+
+}
+
+void PageTable::free_page(unsigned long _page_no){
+	
 }
 
