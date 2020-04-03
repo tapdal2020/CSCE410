@@ -44,6 +44,9 @@
 /* METHODS FOR CLASS   V M P o o l */
 /*--------------------------------------------------------------------------*/
 
+VMPool * VMPool::pools[5] = {NULL,NULL,NULL,NULL,NULL};
+int VMPool::numPools = 0;
+
 VMPool::VMPool(unsigned long  _base_address,
                unsigned long  _size,
                ContFramePool *_frame_pool,

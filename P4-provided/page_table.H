@@ -88,14 +88,17 @@ public:
     /* The page fault handler. */
     
     // -- NEW IN P4
-
-    bool check_address(unsigned long address);
     
     void register_pool(VMPool * _vm_pool);
     /* Register a virtual memory pool with the page table. */
     
     void free_page(unsigned long _page_no);
     /* If page is valid, release frame and mark page invalid. */
+    
+    unsigned long check_address(unsigned long address);
+    /* check address to see if is within range of memory in each memory pool */
+    /* if is_legitimate holds for a pool, its index in the list is returned */
+    
     
 };
 

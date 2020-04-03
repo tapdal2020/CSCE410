@@ -88,11 +88,25 @@ void PageTable::handle_fault(REGS * _r)
 	page[p_index] = new_frame_addr | 0x3;
 }
 
-void PageTable::register_pool(VM_pool * _pool){
-
+void PageTable::register_pool(VMPool * _pool){
+	VMPool::pools[VMPool::numPools] = _pool;
+	VMPool::numPools++;
 }
 
 void PageTable::free_page(unsigned long _page_no){
+	unsigned long address = (_page_no*PAGE_SIZE);
+	unsigned long i = check_address(address);
+	VMPool Pool = *VMPool::pools[i];
+	Pool.release(address);
 	
+}
+
+unsigned long PageTable::check_address(unsigned long address){
+	for(int i = 0; i < VMPool::numPools; i++){
+		VMPool Pool = *VMPool::pools[i];
+		if(Pool.is_legitimate(address)){
+			return i;
+		}
+	}
 }
 
