@@ -43,15 +43,21 @@
 /*--------------------------------------------------------------------------*/
 /* METHODS FOR CLASS   V M P o o l */
 /*--------------------------------------------------------------------------*/
-
-VMPool * VMPool::pools[5] = {NULL,NULL,NULL,NULL,NULL};
-int VMPool::numPools = 0;
+	unsigned long base_address;
+	unsigned long size;
+	ContFramePool * frame_pool;
+	PageTable * page_table;	
+	VMPool * VMPool::pools[5] = {NULL,NULL,NULL,NULL,NULL};
+	int VMPool::numPools = 0;
 
 VMPool::VMPool(unsigned long  _base_address,
                unsigned long  _size,
                ContFramePool *_frame_pool,
                PageTable     *_page_table) {
-    assert(false);
+    base_address = _base_address;
+	size = _size;
+	frame_pool = _frame_pool;
+	page_table = _page_table;
     Console::puts("Constructed VMPool object.\n");
 }
 
@@ -61,12 +67,16 @@ unsigned long VMPool::allocate(unsigned long _size) {
 }
 
 void VMPool::release(unsigned long _start_address) {
-    assert(false);
-    Console::puts("Released region of memory.\n");
+   assert(false);
+   Console::puts("Released region of memory.\n");
 }
 
 bool VMPool::is_legitimate(unsigned long _address) {
-    assert(false);
+    if(_address < base_address && base_address + size > _address){
+		return true;
+	}else{
+		return false;
+	}
     Console::puts("Checked whether address is part of an allocated region.\n");
 }
 

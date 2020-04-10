@@ -10,6 +10,7 @@ ContFramePool * PageTable::kernel_mem_pool = NULL;
 ContFramePool * PageTable::process_mem_pool = NULL;
 unsigned long PageTable::shared_size = 0;
 
+
 void PageTable::init_paging(ContFramePool * _kernel_mem_pool,ContFramePool * _process_mem_pool,const unsigned long _shared_size){
    kernel_mem_pool = _kernel_mem_pool;
    process_mem_pool = _process_mem_pool;
@@ -39,6 +40,8 @@ Console::puts("Enter Page Table Constructor\n");
 		//Console::puts("New Entry Created\n");
 		this->page_directory[i] = 0 | 2;
 	}
+	page_directory[1023] = (unsigned long)page_directory;
+	page_directory[1023] |= 3;
     Console::puts("Constructed Page Table object\n");
 }
 
@@ -82,7 +85,7 @@ void PageTable::handle_fault(REGS * _r)
 
 	p_index = (p_num) & (0x000003FF);
 
-	unsigned long new_frame = process_mem_pool->get_frames(1);
+	unsigned long new_frame = kernel_mem_pool->get_frames(1);
 
 	unsigned long new_frame_addr = new_frame * PAGE_SIZE;
 	page[p_index] = new_frame_addr | 0x3;
@@ -98,7 +101,6 @@ void PageTable::free_page(unsigned long _page_no){
 	unsigned long i = check_address(address);
 	VMPool Pool = *VMPool::pools[i];
 	Pool.release(address);
-	
 }
 
 unsigned long PageTable::check_address(unsigned long address){
