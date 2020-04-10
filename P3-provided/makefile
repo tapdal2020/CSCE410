@@ -65,7 +65,7 @@ cont_frame_pool.o: cont_frame_pool.C cont_frame_pool.H
 
 # ==== KERNEL MAIN FILE =====
 
-kernel.o: kernel.C console.H simple_timer.H page_table.H
+kernel.o: kernel_pt3.C console.H simple_timer.H page_table.H
 	$(CPP) $(CPP_OPTIONS) -c -o kernel.o kernel.C
 
 
