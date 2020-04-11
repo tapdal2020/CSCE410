@@ -44,9 +44,6 @@ private:
    /* -- DEFINE YOUR VIRTUAL MEMORY POOL DATA STRUCTURE(s) HERE. */
 	
 public:
-
-	static VMPool * pools[5];
-	static int numPools;
 	
    VMPool(unsigned long  _base_address,
           unsigned long  _size,

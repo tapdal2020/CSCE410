@@ -17,6 +17,7 @@
 /*--------------------------------------------------------------------------*/
 
 #include "vm_pool.H"
+#include "page_table.H" 
 #include "console.H"
 #include "utils.H"
 #include "assert.H"
@@ -44,19 +45,31 @@
 /* METHODS FOR CLASS   V M P o o l */
 /*--------------------------------------------------------------------------*/
 
-VMPool * VMPool::pools[5] = {NULL,NULL,NULL,NULL,NULL};
-int VMPool::numPools = 0;
+unsigned long base_address;
+unsigned long size;
+ContFramePool * frame_pool;
+PageTable * page_table;
+static unsigned long * regions[512];
+int allocations;
 
 VMPool::VMPool(unsigned long  _base_address,
                unsigned long  _size,
                ContFramePool *_frame_pool,
                PageTable     *_page_table) {
-    assert(false);
+   	base_address = _base_address;
+   	size = _size;
+   	frame_pool = _frame_pool;
+   	page_table = _page_table;
+   	allocations = 0;
+   	
+   	regions = (unsigned long*) base_address;
+   	base_address+=Machine::PAGE_SIZE;
+   	
     Console::puts("Constructed VMPool object.\n");
 }
 
 unsigned long VMPool::allocate(unsigned long _size) {
-    assert(false);
+	
     Console::puts("Allocated region of memory.\n");
 }
 

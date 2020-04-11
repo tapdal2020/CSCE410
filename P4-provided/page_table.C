@@ -3,12 +3,16 @@
 #include "console.H"
 #include "paging_low.H"
 #include "page_table.H"
+#include "utils.H"
 
 PageTable * PageTable::current_page_table = NULL;
 unsigned int PageTable::paging_enabled = 0;
 ContFramePool * PageTable::kernel_mem_pool = NULL;
 ContFramePool * PageTable::process_mem_pool = NULL;
 unsigned long PageTable::shared_size = 0;
+VMPool * PageTable::pools[5] = {NULL, NULL, NULL, NULL, NULL};
+int PageTable::numPools = 0;
+
 
 void PageTable::init_paging(ContFramePool * _kernel_mem_pool,ContFramePool * _process_mem_pool,const unsigned long _shared_size){
    kernel_mem_pool = _kernel_mem_pool;
@@ -67,6 +71,13 @@ void PageTable::handle_fault(REGS * _r)
 	unsigned long address = read_cr2();
 	unsigned long p_num = address >> 12;
 	unsigned long p_index = address >> 22;
+	
+	Console::puts("Checking Address...\n");
+	unsigned long idx = current_page_table->check_address(address);
+	if(idx == -1){
+		Console::puts("Aborting\n");
+		abort();
+	}
 
 	if((current_page_table->page_directory[p_index] & 0x1)!=0x1){
 		unsigned long * page = (unsigned long *) (kernel_mem_pool->get_frames(1)*PAGE_SIZE);
@@ -89,24 +100,29 @@ void PageTable::handle_fault(REGS * _r)
 }
 
 void PageTable::register_pool(VMPool * _pool){
-	VMPool::pools[VMPool::numPools] = _pool;
-	VMPool::numPools++;
+	pools[numPools] = _pool;
+	numPools++;
 }
 
 void PageTable::free_page(unsigned long _page_no){
 	unsigned long address = (_page_no*PAGE_SIZE);
+	unsigned long p_num = address >> 12;
+	unsigned long p_index = address >> 22;
 	unsigned long i = check_address(address);
-	VMPool Pool = *VMPool::pools[i];
-	Pool.release(address);
+	unsigned long * page = (unsigned long *)(current_page_table->page_directory[p_index]);
+	page[p_index] &= 0x1; //make the page entry unavailable
+	VMPool Pool = *pools[i];
+	Pool.release(address); //release the address from the Virtual Pool
 	
 }
 
 unsigned long PageTable::check_address(unsigned long address){
-	for(int i = 0; i < VMPool::numPools; i++){
-		VMPool Pool = *VMPool::pools[i];
+	for(int i = 0; i < numPools; i++){
+		VMPool Pool = *pools[i];
 		if(Pool.is_legitimate(address)){
 			return i;
 		}
 	}
+	return -1;
 }
 
