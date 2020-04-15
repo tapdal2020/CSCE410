@@ -22,6 +22,7 @@
 #include "utils.H"
 #include "assert.H"
 #include "simple_keyboard.H"
+#include "paging_low.H"
 
 /*--------------------------------------------------------------------------*/
 /* DATA STRUCTURES */
@@ -44,7 +45,7 @@
 /*--------------------------------------------------------------------------*/
 /* METHODS FOR CLASS   V M P o o l */
 /*--------------------------------------------------------------------------*/
-<<<<<<< HEAD
+
 
 unsigned long base_address;
 unsigned long size;
@@ -52,50 +53,60 @@ ContFramePool * frame_pool;
 PageTable * page_table;
 static unsigned long * regions[512];
 int allocations;
-=======
-	unsigned long base_address;
-	unsigned long size;
-	ContFramePool * frame_pool;
-	PageTable * page_table;	
-	VMPool * VMPool::pools[5] = {NULL,NULL,NULL,NULL,NULL};
-	int VMPool::numPools = 0;
->>>>>>> fa0c733fe79dac999a03ed275d788f2270550f58
 
 VMPool::VMPool(unsigned long  _base_address,
                unsigned long  _size,
                ContFramePool *_frame_pool,
                PageTable     *_page_table) {
-<<<<<<< HEAD
    	base_address = _base_address;
    	size = _size;
    	frame_pool = _frame_pool;
    	page_table = _page_table;
    	allocations = 0;
    	
-   	regions = (unsigned long*) base_address;
+   	page_table->PageTable::register_pool(this);
+   	
    	base_address+=Machine::PAGE_SIZE;
    	
-=======
-    base_address = _base_address;
-	size = _size;
-	frame_pool = _frame_pool;
-	page_table = _page_table;
->>>>>>> fa0c733fe79dac999a03ed275d788f2270550f58
     Console::puts("Constructed VMPool object.\n");
 }
 
 unsigned long VMPool::allocate(unsigned long _size) {
-	
-    Console::puts("Allocated region of memory.\n");
+	int count = 0;
+	for(int i = 0; i < 512; i++){
+		if(count == _size){
+			unsigned long address = (read_cr3() << 10);
+			unsigned long val = (1 + (_size << 1));
+			for(int j = 0; j < _size; j++){
+				regions[i - count + j] = (unsigned long *)(address + val);
+			}
+			Console::puts("Allocated region of memory.\n");
+			return address >> 10;
+		}else if(count < _size){
+			if(regions[i] != NULL){
+				count++;
+			}else{
+				count = 0;
+			}
+		}
+	}
 }
 
 void VMPool::release(unsigned long _start_address) {
-   assert(false);
-   Console::puts("Released region of memory.\n");
+   	for(int i = 0; i < 512; i++){
+   		if((unsigned long)regions[i] >> 10 == _start_address){
+   			unsigned long size = ((unsigned long)regions[i] & 1023) >> 1; //get the size value alone
+   			for(int j = 0; j < size; j++){
+				regions[i+j] == NULL;
+			}
+		Console::puts("Released region of memory.\n");
+		return;
+   		}	
+   	}
 }
 
 bool VMPool::is_legitimate(unsigned long _address) {
-    if(_address < base_address && base_address + size > _address){
+    if(_address > base_address && base_address + size > _address){
 		return true;
 	}else{
 		return false;

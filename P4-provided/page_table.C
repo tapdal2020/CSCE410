@@ -71,19 +71,23 @@ void PageTable::enable_paging()
 void PageTable::handle_fault(REGS * _r)
 {
 	Machine::enable_interrupts();
-	unsigned long address = read_cr2();
+	unsigned long address = read_cr3();
 	unsigned long p_num = address >> 12;
 	unsigned long p_index = address >> 22;
+	bool ok = false;
+	for(int i = 0; i < numPools; i++){
+		if(pools[i]->VMPool::is_legitimate(address)){
+			ok = true;
+		}
+	}
 	
-	Console::puts("Checking Address...\n");
-	unsigned long idx = current_page_table->check_address(address);
-	if(idx == -1){
+	if(!ok){
 		Console::puts("Aborting\n");
 		abort();
 	}
 
 	if((current_page_table->page_directory[p_index] & 0x1)!=0x1){
-		unsigned long * page = (unsigned long *) (kernel_mem_pool->get_frames(1)*PAGE_SIZE);
+		unsigned long * page = (unsigned long *) (process_mem_pool->get_frames(1)*PAGE_SIZE);
 		for(int i = 0; i < PAGE_SIZE; i++){
 			page[i]=0x2;
 		}
@@ -112,16 +116,10 @@ void PageTable::free_page(unsigned long _page_no){
 	unsigned long p_num = address >> 12;
 	unsigned long p_index = address >> 22;
 	unsigned long i = check_address(address);
-<<<<<<< HEAD
 	unsigned long * page = (unsigned long *)(current_page_table->page_directory[p_index]);
-	page[p_index] &= 0x1; //make the page entry unavailable
+	page[p_index] ^= 0xFFFFFFFE; //make the page entry unavailable
 	VMPool Pool = *pools[i];
-	Pool.release(address); //release the address from the Virtual Pool
-	
-=======
-	VMPool Pool = *VMPool::pools[i];
 	Pool.release(address);
->>>>>>> fa0c733fe79dac999a03ed275d788f2270550f58
 }
 
 unsigned long PageTable::check_address(unsigned long address){
