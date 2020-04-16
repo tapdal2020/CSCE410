@@ -75,19 +75,9 @@ void PageTable::handle_fault(REGS * _r)
 	unsigned long p_num = address >> 12;
 	unsigned long p_index = address >> 22;
 	bool ok = false;
-	for(int i = 0; i < numPools; i++){
-		if(pools[i]->VMPool::is_legitimate(address)){
-			ok = true;
-		}
-	}
-	
-	if(!ok){
-		Console::puts("Aborting\n");
-		abort();
-	}
 
 	if((current_page_table->page_directory[p_index] & 0x1)!=0x1){
-		unsigned long * page = (unsigned long *) (process_mem_pool->get_frames(1)*PAGE_SIZE);
+		unsigned long * page = (unsigned long *) (kernel_mem_pool->get_frames(1)*PAGE_SIZE);
 		for(int i = 0; i < PAGE_SIZE; i++){
 			page[i]=0x2;
 		}

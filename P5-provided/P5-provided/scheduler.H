@@ -13,13 +13,14 @@
 /* DEFINES */
 /*--------------------------------------------------------------------------*/
 
-/* -- (none) -- */
+#define NULL 0
 
 /*--------------------------------------------------------------------------*/
 /* INCLUDES */
 /*--------------------------------------------------------------------------*/
 
 #include "thread.H"
+#include "assert.H"
 
 /*--------------------------------------------------------------------------*/
 /* !!! IMPLEMENTATION HINT !!! */
@@ -50,6 +51,47 @@
     
  */
 
+struct node{
+	Thread *t;
+	node *next;
+};
+class ready_list{
+	
+	public:
+
+	node *head;
+	node *tail;
+	ready_list(){
+		head = NULL;
+		tail = NULL;
+	}
+	void add_node(Thread* n)
+    {
+        node *tmp = new node;
+        tmp->t = n;
+        tmp->next = NULL;
+
+        if(head == NULL)
+        {
+            head = tmp;
+            tail = tmp;
+        }
+        else
+        {
+            tail->next = tmp;
+            tail = tail->next;
+        }
+    }
+
+	Thread * pop(){
+		assert(head!=NULL);
+
+		Thread * thread = head->t;
+		head = head->next;
+		return thread;
+	}
+};
+
 /*--------------------------------------------------------------------------*/
 /* SCHEDULER */
 /*--------------------------------------------------------------------------*/
@@ -57,6 +99,8 @@
 class Scheduler {
 
   /* The scheduler may need private members... */
+private:
+	ready_list rl;
   
 public:
 

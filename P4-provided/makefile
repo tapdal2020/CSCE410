@@ -68,7 +68,7 @@ vm_pool.o: vm_pool.C vm_pool.H
 
 # ==== KERNEL MAIN FILE =====
 
-kernel.o: kernel_pt3.C console.H simple_timer.H page_table.H
+kernel.o: kernel.C console.H simple_timer.H page_table.H
 	$(CPP) $(CPP_OPTIONS) -c -o kernel.o kernel.C
 
 kernel.bin: start.o utils.o kernel.o assert.o console.o gdt.o idt.o irq.o exceptions.o \

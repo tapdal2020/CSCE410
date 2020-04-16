@@ -45,23 +45,32 @@
 /* METHODS FOR CLASS   S c h e d u l e r  */
 /*--------------------------------------------------------------------------*/
 
+
 Scheduler::Scheduler() {
-  assert(false);
-  Console::puts("Constructed Scheduler.\n");
+  	Console::puts("Constructed Scheduler.\n");
 }
 
 void Scheduler::yield() {
-  assert(false);
+  	//get the next thread going to the CPU
+	Thread * next = rl.pop();
+	resume(Thread::CurrentThread());
+	//send CPU control to the next thread
+	Thread::dispatch_to(next);
 }
 
 void Scheduler::resume(Thread * _thread) {
-  assert(false);
+ 	rl.add_node(_thread);
 }
 
 void Scheduler::add(Thread * _thread) {
-  assert(false);
+  	rl.add_node(_thread);
 }
 
 void Scheduler::terminate(Thread * _thread) {
-  assert(false);
-}
+	if(rl.head !=NULL){	
+		Thread * next = rl.pop();
+		delete next;
+	}else{
+		Console::puts("No More Threads!");
+	}
+}	
