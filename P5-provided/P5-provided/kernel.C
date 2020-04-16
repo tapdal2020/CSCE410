@@ -114,7 +114,7 @@ void pass_on_CPU(Thread * _to_thread) {
 
         /* We don't use a scheduler. Explicitely pass control to the next
            thread in a co-routine fashion. */
-	Thread::dispatch_to(_to_thread);
+	//Thread::dispatch_to(_to_thread);
 
 #else
 
@@ -148,9 +148,9 @@ void fun1() {
     for(int j = 0;; j++) 
 #endif
     {	
-        Console::puts("FUN 1 IN BURST["); Console::puti(j); Console::puts("]\n");
+        //Console::puts("FUN 1 IN BURST["); Console::puti(j); Console::puts("]\n");
         for (int i = 0; i < 10; i++) {
-            Console::puts("FUN 1: TICK ["); Console::puti(i); Console::puts("]\n");
+            //Console::puts("FUN 1: TICK ["); Console::puti(i); Console::puts("]\n");
         }
         pass_on_CPU(thread2);
     }
@@ -167,9 +167,9 @@ void fun2() {
     for(int j = 0;; j++) 
 #endif  
     {		
-        Console::puts("FUN 2 IN BURST["); Console::puti(j); Console::puts("]\n");
+        //Console::puts("FUN 2 IN BURST["); Console::puti(j); Console::puts("]\n");
         for (int i = 0; i < 10; i++) {
-            Console::puts("FUN 2: TICK ["); Console::puti(i); Console::puts("]\n");
+            //Console::puts("FUN 2: TICK ["); Console::puti(i); Console::puts("]\n");
         }
         pass_on_CPU(thread3);
     }
@@ -179,10 +179,15 @@ void fun3() {
     Console::puts("Thread: "); Console::puti(Thread::CurrentThread()->ThreadId()); Console::puts("\n");
     Console::puts("FUN 3 INVOKED!\n");
 
-    for(int j = 0;; j++) {
-        Console::puts("FUN 3 IN BURST["); Console::puti(j); Console::puts("]\n");
+    #ifdef _TERMINATING_FUNCTIONS_
+    for(int j = 0; j < 10; j++) 
+#else
+    for(int j = 0;; j++) 
+#endif  
+    {
+        //Console::puts("FUN 3 IN BURST["); Console::puti(j); Console::puts("]\n");
         for (int i = 0; i < 10; i++) {
-	    Console::puts("FUN 3: TICK ["); Console::puti(i); Console::puts("]\n");
+	    //Console::puts("FUN 3: TICK ["); Console::puti(i); Console::puts("]\n");
         }
         pass_on_CPU(thread4);
     }
@@ -191,11 +196,15 @@ void fun3() {
 void fun4() {
     Console::puts("Thread: "); Console::puti(Thread::CurrentThread()->ThreadId()); Console::puts("\n");
     Console::puts("FUN 4 INVOKED!\n");
-
-    for(int j = 0;; j++) {
-        Console::puts("FUN 4 IN BURST["); Console::puti(j); Console::puts("]\n");
+#ifdef _TERMINATING_FUNCTIONS_
+    for(int j = 0; j < 10; j++) 
+#else
+    for(int j = 0;; j++) 
+#endif  
+    {
+        //Console::puts("FUN 4 IN BURST["); Console::puti(j); Console::puts("]\n");
         for (int i = 0; i < 10; i++) {
-	    Console::puts("FUN 4: TICK ["); Console::puti(i); Console::puts("]\n");
+	    //Console::puts("FUN 4: TICK ["); Console::puti(i); Console::puts("]\n");
         }
         pass_on_CPU(thread1);
     }

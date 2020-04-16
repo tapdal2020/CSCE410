@@ -79,6 +79,8 @@ static void thread_shutdown() {
     Console::puts("Thread Terminated\n");
 	Thread* t = Thread::CurrentThread();
 	SYSTEM_SCHEDULER->terminate(Thread::CurrentThread());
+
+	delete t;
 	
     /* Let's not worry about it for now. 
        This means that we should have non-terminating thread functions. 

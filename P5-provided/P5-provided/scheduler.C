@@ -52,10 +52,14 @@ Scheduler::Scheduler() {
 
 void Scheduler::yield() {
   	//get the next thread going to the CPU
-	Thread * next = rl.pop();
-	resume(Thread::CurrentThread());
-	//send CPU control to the next thread
-	Thread::dispatch_to(next);
+	if(rl.head !=NULL){
+		Thread * next = rl.pop();
+		//resume(Thread::CurrentThread());
+		//send CPU control to the next thread
+		Thread::dispatch_to(next);
+	}else{
+		return;
+	}
 }
 
 void Scheduler::resume(Thread * _thread) {
@@ -69,8 +73,8 @@ void Scheduler::add(Thread * _thread) {
 void Scheduler::terminate(Thread * _thread) {
 	if(rl.head !=NULL){	
 		Thread * next = rl.pop();
-		delete next;
+		Thread::dispatch_to(next);
 	}else{
-		Console::puts("No More Threads!");
+		Console::puts("No More Threads!\n");
 	}
 }	
