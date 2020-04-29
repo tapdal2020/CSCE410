@@ -136,13 +136,13 @@ void fun1() {
     Console::puts("FUN 1 INVOKED! I WILL RUN FOREVER\n");
     debug_out_E9("FUN 1 INVOKED!  I WILL RUN FOREVER\n");
     
-    for(int j = 0; j < NB_ITERATIONS; j++) { // this thread is going to run forever
+    for(int j = 0; ; j++) { // this thread is going to run forever
 
        Console::puts("FUN 1 IN ITERATION["); Console::puti(j); Console::puts("]\n");
        debug_out_E9_msg_value("FUN 1 IN ITERATION ", j);
        
        for (int i = 0; i < 10; i++) {
-           //Console::puts("FUN 1: TICK ["); Console::puti(i); Console::puts("]\n");
+           Console::puts("FUN 1: TICK ["); Console::puti(i); Console::puts("]\n");
 	   debug_out_E9_msg_value("FUN 1: TICK ", i);
        }
 
@@ -176,7 +176,7 @@ void fun2() {
        Console::puts("Loop in FUN 2 will display the buf content in the output file.\nCheck there if you want to see it.\n");
        debug_out_E9("Displaying the data read from the disk\n");
        for (int i = 0; i < DISK_BLOCK_SIZE; i++) {
-			//debug_out_E9_msg_value(" " , buf[i]);
+			debug_out_E9_msg_value(" " , buf[i]);
        }
        debug_out_E9("\nEnd of buf\n");
        
@@ -225,7 +225,7 @@ void fun3() {
     debug_out_E9("FUN 3 INVOKED!\n");
 
      for(unsigned int j = 0; j < NB_ITERATIONS; j++) {
-       //Console::puts("FUN 3 IN BURST["); Console::puti(j); Console::puts("]\n");
+       Console::puts("FUN 3 IN BURST["); Console::puti(j); Console::puts("]\n");
        debug_out_E9_msg_value("FUN 3 IN BURST ", j);
        for (int i = 0; i < 10; i++) {
            Console::puts("FUN 3: TICK ["); Console::puti(i); Console::puts("]\n");
@@ -247,7 +247,7 @@ void fun4() {
     
     for(unsigned int j = 0; j < NB_ITERATIONS; j++) {
 
-       //Console::puts("FUN 4 IN BURST["); Console::puti(j); Console::puts("]\n");
+       Console::puts("FUN 4 IN BURST["); Console::puti(j); Console::puts("]\n");
        debug_out_E9_msg_value("FUN 4 IN BURST ", j);
        for (int i = 0; i < 10; i++) {
            Console::puts("FUN 4: TICK ["); Console::puti(i); Console::puts("]\n");
