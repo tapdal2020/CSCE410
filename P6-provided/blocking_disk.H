@@ -8,6 +8,7 @@
 
 */
 
+
 #ifndef _BLOCKING_DISK_H_
 #define _BLOCKING_DISK_H_
 
@@ -22,6 +23,7 @@
 /*--------------------------------------------------------------------------*/
 
 #include "simple_disk.H"
+#include "scheduler.H"
 
 /*--------------------------------------------------------------------------*/
 /* DATA STRUCTURES */ 
@@ -34,6 +36,10 @@
 /*--------------------------------------------------------------------------*/
 
 class BlockingDisk : public SimpleDisk {
+	
+private:
+	ready_list blockq;
+
 public:
    BlockingDisk(DISK_ID _disk_id, unsigned int _size); 
    /* Creates a BlockingDisk device with the given size connected to the 
@@ -43,6 +49,8 @@ public:
       disk controller. */
 
    /* DISK OPERATIONS */
+   
+   virtual void wait_until_ready();
 
    virtual void read(unsigned long _block_no, unsigned char * _buf);
    /* Reads 512 Bytes from the given block of the disk and copies them 

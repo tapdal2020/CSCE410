@@ -49,7 +49,7 @@
 #include "thread.H"         /* THREAD MANAGEMENT */
 
 #include "simple_disk.H"    /* DISK DEVICE */
-                            /* YOU MAY NEED TO INCLUDE blocking_disk.H
+#include "blocking_disk.H"  /* YOU MAY NEED TO INCLUDE blocking_disk.H
 /*--------------------------------------------------------------------------*/
 /* MEMORY MANAGEMENT */
 /*--------------------------------------------------------------------------*/
@@ -89,9 +89,9 @@ void operator delete[] (void * p) {
 /*--------------------------------------------------------------------------*/
 
 /* -- A POINTER TO THE SYSTEM DISK */
-SimpleDisk * SYSTEM_DISK;
+BlockingDisk * SYSTEM_DISK;
 /* -- A POINTER TO THE SLAVE DISK */
-SimpleDisk * SLAVE_DISK;
+BlockingDisk * SLAVE_DISK;
 
 #define SYSTEM_DISK_SIZE (10 MB)
 
@@ -148,13 +148,13 @@ int main() {
 
     /* We declare the master disk, but this simple example is not going to use it.
     ** We will write to the second disk only */
-    SYSTEM_DISK = new SimpleDisk(MASTER, SYSTEM_DISK_SIZE);
-    SLAVE_DISK = new SimpleDisk(SLAVE, SYSTEM_DISK_SIZE);
+    SYSTEM_DISK = new BlockingDisk(MASTER, SYSTEM_DISK_SIZE);
+    SLAVE_DISK = new BlockingDisk(SLAVE, SYSTEM_DISK_SIZE);
     
     unsigned char write_buf[DISK_BLOCK_SIZE];
     unsigned char read_buf[DISK_BLOCK_SIZE];
     for (int i =0; i < DISK_BLOCK_SIZE; i++) {
-	write_buf[i] = '*';
+		write_buf[i] = '*';
     }
     Console::puts("It is going to write to block number 1 of the slave disk\n");
     SLAVE_DISK->write(1, write_buf); // using the second block on the disk, it could be any
@@ -163,12 +163,12 @@ int main() {
     Console::puts("It is going to read to block number 1 of the slave disk\n");
     SLAVE_DISK->read(1, read_buf);
     for (int i =0; i < DISK_BLOCK_SIZE; i++) {
-	if (write_buf[i] != read_buf[i]) {
-	    Console::puts("PROBLEM: byte read is not what we wrote for i ");
-	    Console::puti(i);
-	    Console::puts("\n");
-	    abort();
-	}
+		if (write_buf[i] != read_buf[i]) {
+			Console::puts("PROBLEM: byte read is not what we wrote for i ");
+			Console::puti(i);
+			Console::puts("\n");
+			abort();
+		}
     }
 	    
     Console::puts("Usage of SimpleDisk:read and SimpleDisk::write worked\n");

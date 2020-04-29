@@ -97,6 +97,3 @@ void outportw (unsigned short _port, unsigned short _data);
 
 
 #endif
-
-
-

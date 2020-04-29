@@ -32,7 +32,6 @@
 /* DATA STRUCTURES */ 
 /*--------------------------------------------------------------------------*/
 
-  
 typedef enum {MASTER = 0, SLAVE = 1} DISK_ID;
 typedef enum {READ = 0, WRITE = 1} DISK_OPERATION;
 /* Note: This should be replaced by scoped enums as soon as supported by
@@ -49,14 +48,13 @@ private:
      DISK_ID      disk_id;            /* This disk is either MASTER or SLAVE */
 
      unsigned int disk_size;          /* In Byte */
-
-     void issue_operation(DISK_OPERATION _op, unsigned long _block_no);
-     /* Send a sequence of commands to the controller to initialize the READ/WRITE 
-        operation. This operation is called by read() and write(). */ 
-        
      
 protected:
      /* -- HERE WE CAN DEFINE THE BEHAVIOR OF DERIVED DISKS */ 
+     
+     void issue_operation(DISK_OPERATION _op, unsigned long _block_no);
+     /* Send a sequence of commands to the controller to initialize the READ/WRITE 
+        operation. This operation is called by read() and write(). */ 
 
      virtual bool is_ready();
      /* Return true if disk is ready to transfer data from/to disk, false otherwise. */

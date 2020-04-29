@@ -100,7 +100,7 @@ Scheduler * SYSTEM_SCHEDULER;
 /*--------------------------------------------------------------------------*/
 
 /* -- A POINTER TO THE SYSTEM DISK */
-SimpleDisk * SYSTEM_DISK;
+BlockingDisk * SYSTEM_DISK;
 
 #define SYSTEM_DISK_SIZE (10 MB)
 
@@ -136,13 +136,13 @@ void fun1() {
     Console::puts("FUN 1 INVOKED! I WILL RUN FOREVER\n");
     debug_out_E9("FUN 1 INVOKED!  I WILL RUN FOREVER\n");
     
-    for(int j = 0; ; j++) { // this thread is going to run forever
+    for(int j = 0; j < NB_ITERATIONS; j++) { // this thread is going to run forever
 
        Console::puts("FUN 1 IN ITERATION["); Console::puti(j); Console::puts("]\n");
        debug_out_E9_msg_value("FUN 1 IN ITERATION ", j);
        
        for (int i = 0; i < 10; i++) {
-           Console::puts("FUN 1: TICK ["); Console::puti(i); Console::puts("]\n");
+           //Console::puts("FUN 1: TICK ["); Console::puti(i); Console::puts("]\n");
 	   debug_out_E9_msg_value("FUN 1: TICK ", i);
        }
 
@@ -156,7 +156,7 @@ void fun2() {
     Console::puts("FUN 2 INVOKED. I'M POWERFUL: I USE THE DISK!\n");
     debug_out_E9("FUN 2 INVOKED! I'M POWERFUL: I USE THE DISK\n");
     
-    unsigned char buf[DISK_BLOCK_SIZE];
+    unsigned char* buf = new unsigned char[DISK_BLOCK_SIZE];
     int  read_block  = 1;
     int  write_block = 0;
 
@@ -176,7 +176,7 @@ void fun2() {
        Console::puts("Loop in FUN 2 will display the buf content in the output file.\nCheck there if you want to see it.\n");
        debug_out_E9("Displaying the data read from the disk\n");
        for (int i = 0; i < DISK_BLOCK_SIZE; i++) {
-	   debug_out_E9_msg_value(" " , buf[i]);
+			//debug_out_E9_msg_value(" " , buf[i]);
        }
        debug_out_E9("\nEnd of buf\n");
        
@@ -186,19 +186,20 @@ void fun2() {
 
        /* When we do our first write, we will check if we actually wrote  the data */
        if (checking_first_write_read) {
-	   Console::puts("Reading the block we just wrote ...\n");
-	   debug_out_E9("Reading the block we just wrote ...\n");
-	   unsigned char aux[DISK_BLOCK_SIZE];
-	   SYSTEM_DISK->read(write_block, aux);
+		   Console::puts("Reading the block we just wrote ...\n");
+		   debug_out_E9("Reading the block we just wrote ...\n");
+		   unsigned char* aux = new unsigned char[DISK_BLOCK_SIZE];
+		   SYSTEM_DISK->read(write_block, aux);
 	   for (int k = 0; k < DISK_BLOCK_SIZE; k++) {
 	       if (aux[k] != buf[k]) {
-		   debug_out_E9_msg_value("aux/buf comparison failed for k " , k);		   
-		   Console::puts("aux/buf comparison failed for k ");
-		   Console::puti(k);
-		   Console::puts("\n");
-		   assert(false);
+			   debug_out_E9_msg_value("aux/buf comparison failed for k " , k);		   
+			   Console::puts("aux/buf comparison failed for k ");
+			   Console::puti(k);
+			   Console::puts("\n");
+			   assert(false);
 	       }
 	   }
+	   delete aux;
 	   Console::puts("Data matches! All is fine.\n");
 	   debug_out_E9("Data matches! All is fine.\n");
 	   checking_first_write_read = false;
@@ -214,6 +215,7 @@ void fun2() {
 
     Console::puts("FUN 2 IS DONE!\n");
     debug_out_E9("FUN 2 IS DONE!\n");
+    delete buf;
 }
 
 void fun3() {
@@ -223,7 +225,7 @@ void fun3() {
     debug_out_E9("FUN 3 INVOKED!\n");
 
      for(unsigned int j = 0; j < NB_ITERATIONS; j++) {
-       Console::puts("FUN 3 IN BURST["); Console::puti(j); Console::puts("]\n");
+       //Console::puts("FUN 3 IN BURST["); Console::puti(j); Console::puts("]\n");
        debug_out_E9_msg_value("FUN 3 IN BURST ", j);
        for (int i = 0; i < 10; i++) {
            Console::puts("FUN 3: TICK ["); Console::puti(i); Console::puts("]\n");
@@ -245,7 +247,7 @@ void fun4() {
     
     for(unsigned int j = 0; j < NB_ITERATIONS; j++) {
 
-       Console::puts("FUN 4 IN BURST["); Console::puti(j); Console::puts("]\n");
+       //Console::puts("FUN 4 IN BURST["); Console::puti(j); Console::puts("]\n");
        debug_out_E9_msg_value("FUN 4 IN BURST ", j);
        for (int i = 0; i < 10; i++) {
            Console::puts("FUN 4: TICK ["); Console::puti(i); Console::puts("]\n");
@@ -312,7 +314,7 @@ int main() {
 
     /* -- DISK DEVICE -- */
 
-    SYSTEM_DISK = new SimpleDisk(MASTER, SYSTEM_DISK_SIZE);
+    SYSTEM_DISK = new BlockingDisk(MASTER, SYSTEM_DISK_SIZE);
    
     /* NOTE: The timer chip starts periodically firing as 
              soon as we enable interrupts.

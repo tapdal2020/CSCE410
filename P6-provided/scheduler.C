@@ -46,22 +46,34 @@
 /*--------------------------------------------------------------------------*/
 
 Scheduler::Scheduler() {
-  assert(false);
-  Console::puts("Constructed Scheduler.\n");
+  	Console::puts("Constructed Scheduler.\n");
 }
 
 void Scheduler::yield() {
-  assert(false);
+  	//get the next thread going to the CPU
+	if(rl.head !=NULL){
+		Thread * next = rl.pop();
+		//resume(Thread::CurrentThread());
+		//send CPU control to the next thread
+		Thread::dispatch_to(next);
+	}else{
+		return;
+	}
 }
 
 void Scheduler::resume(Thread * _thread) {
-  assert(false);
+ 	rl.add_node(_thread);
 }
 
 void Scheduler::add(Thread * _thread) {
-  assert(false);
+  	rl.add_node(_thread);
 }
 
 void Scheduler::terminate(Thread * _thread) {
-  assert(false);
-}
+	if(rl.head !=NULL){	
+		Thread * next = rl.pop();
+		Thread::dispatch_to(next);
+	}else{
+		Console::puts("No More Threads!\n");
+	}
+}	
